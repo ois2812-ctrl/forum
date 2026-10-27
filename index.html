@@ -195,11 +195,11 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 let ME=Object.assign({name:'Иван Овчинников',pos:'Менеджер по работе с клиентами',phone:'+7 917 576 76 59',email:'ISOvchinnikov@1cbit.ru',tgUser:'',link:''},store.get('fm_me',{}));
 let LEADS=store.get('fm_leads',[]);
 const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',company:'',industry:[],size:'',role:[],fio:'',pos:'',email:'',phone:'',tg:'',
-  sys:{},ext:[],indSys:'',focus:[],pain:'',timing:'',trigger:[],budget:'',proc:[],matsOff:[],
+  sys:{},ext:[],indSys:'',focus:[],pain:'',timing:'',trigger:[],budget:'',proc:[],out:[],matsOff:[],
   when:'',later:'',meet:[],date:'',time:'',comment:'',pot:'',urg:'',example:false});
 let L=blank(), step=0, view='form', open='', DL=null;
 const CLIENT=()=>location.hash==='#client';
-function norm(x){['industry','role','trigger','meet','ext','focus','matsOff','proc'].forEach(k=>{const v=x[k];x[k]=Array.isArray(v)?v:(v?[v]:[])});Object.values(x.sys||{}).forEach(v=>{['cur','tgt'].forEach(k=>{const z=v[k];v[k]=Array.isArray(z)?z:(z?[z]:[])})});return x}
+function norm(x){['industry','role','trigger','meet','ext','focus','matsOff','proc','out'].forEach(k=>{const v=x[k];x[k]=Array.isArray(v)?v:(v?[v]:[])});Object.values(x.sys||{}).forEach(v=>{['cur','tgt'].forEach(k=>{const z=v[k];v[k]=Array.isArray(z)?z:(z?[z]:[])})});return x}
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -408,42 +408,109 @@ function table(x0,y0,W){
   touched().forEach(c=>{const v=sv(c.id);row([c.n,v.cur.join(', ')||'нет системы',propText(c)],{nw:['replace','none','add'].includes(v.st)})});
   return {g,h:y-y0};
 }
+/* ---- что отдаём клиенту ---- */
+const OUTS=[['arch','Схема систем и обменов'],['proc','Описание процессов'],['eff','Возможные эффекты'],['calc','Какие цифры собрать для расчёта эффекта'],['road','Дорожная карта внедрения'],['risk','Риски, если ничего не менять'],['it','Что потребуется от ИТ'],['mats','Что прислать для примера на ваших данных']];
+const OUTN={};OUTS.forEach(([k,n])=>OUTN[k]=n);
+const ROLE_OUT={'Собственник или ГД':['eff','road','risk'],'Финансы':['eff','calc','road'],'ИТ':['arch','it','road'],'Производство':['proc','eff'],'Главный инженер':['proc','eff'],'Коммерция':['proc','eff'],'HR':['proc','eff'],'Бухгалтерия':['proc','eff','arch']};
+function outDefaults(){const r=arr(L.role);const o=r.length?uniq(r.flatMap(x=>ROLE_OUT[x]||[])):['arch','proc','eff'];o.push('mats');return OUTS.map(x=>x[0]).filter(k=>o.includes(k))}
+function outKeys(){const o=arr(L.out).filter(k=>OUTN[k]);return o.length?OUTS.map(x=>x[0]).filter(k=>o.includes(k)):outDefaults()}
+const EFF={
+ acc:['Закрытие месяца быстрее: первичка без ручного ввода','Меньше ошибок в налоговом учёте','Вся отчётность из одной системы'],
+ fin:['Бюджеты собираются в системе, а не в Excel','Платежи идут по маршруту согласования, видно, где застряли','План-факт по ЦФО в любой момент'],
+ prod:['Фактическая себестоимость сразу после выпуска','План производства с учётом мощностей и материалов','Меньше простоев из-за нехватки материалов'],
+ wh:['Меньше пересорта и ошибок отбора','Быстрее приёмка и отгрузка','Точные остатки по ячейкам'],
+ sales:['Заявки не теряются','Менеджер видит оплаты и отгрузки без звонков в бухгалтерию','Воронка и прогноз продаж для руководителя'],
+ hr:['Зарплата без ручных корректировок','Кадровые документы подписываются электронно','Затраты на персонал по подразделениям'],
+ doc:['Договор согласуется за дни, а не недели','Видно, у кого сейчас документ','Контроль сроков исполнения'],
+ nsi:['Один справочник без дублей для всех систем','Отчёты по номенклатуре сходятся','Новые позиции заводятся быстрее и без дублей'],
+ toir:['Меньше аварийных простоев за счёт ППР','История ремонтов по каждой единице оборудования','Затраты на ремонты по объектам'],
+ bi:['Руководитель видит цифры утром, а не в середине месяца','Одна методика расчёта показателей','Аналитики анализируют, а не сводят таблицы'],
+ rpa:['Рутину делает агент или робот, люди проверяют исключения','Отчёты и сводки по запросу в чате','Рост объёма без новых ставок'],
+ itsm:['Все заявки в одном месте, со сроками','Видна нагрузка на ИТ','Штат и бюджет ИТ обосновываются цифрами'],
+ supp:['Предсказуемые сроки реакции','Обновления без остановки работы','Прозрачные часы на доработки'],
+ trans:['Затраты на каждый рейс и ТС видны сразу','Контроль топлива по данным GPS','Путевые листы без бумаги'],
+ build:['Перерасход по объекту виден, пока его можно остановить','Договоры и КС-2 в одной системе','Снабжение объектов по заявкам'],
+ retail:['Остатки магазинов онлайн','Автозаказ по остаткам','Выручка по магазинам утром'],
+ hotel:['Выручка из PMS в учёте без ручного ввода','Загрузка и выручка по объектам в одном отчёте','Сверка оплат за минуты'],
+ agro:['Себестоимость по полю и культуре','Контроль работ техники и топлива','План-факт по сезону']
+};
+const CALC={
+ acc:['Сколько дней занимает закрытие месяца','Сколько человек вводят первичку'],
+ fin:['Сколько дней собирается бюджет','Сколько заявок на оплату в месяц и сколько они согласуются'],
+ prod:['Как часто считают себестоимость','Сколько часов простоя из-за нехватки материалов'],
+ wh:['Сколько строк отгрузки в день','Доля ошибок отбора и пересорта'],
+ sales:['Сколько заявок в месяц и сколько теряется','Сколько менеджеров'],
+ hr:['Сколько сотрудников и расчётчиков','Сколько кадровых документов в месяц'],
+ doc:['Сколько договоров в месяц','Средний срок согласования'],
+ nsi:['Сколько позиций в справочнике','Сколько новых позиций в месяц'],
+ toir:['Часы аварийных простоев в месяц','Стоимость часа простоя','Затраты на ремонты в год'],
+ bi:['Сколько человек и дней уходит на свод отчётности'],
+ rpa:['Сколько человек на однотипных операциях','Сколько документов в месяц'],
+ itsm:['Заявок в месяц','Средний срок решения'],
+ supp:['Обращений в месяц','Сколько стоит поддержка сейчас'],
+ trans:['Сколько ТС и рейсов в месяц','Затраты на топливо в месяц'],
+ build:['Сколько объектов одновременно','Типичный перерасход по объекту'],
+ retail:['Сколько магазинов и чеков в день','Доля списаний и недостач'],
+ hotel:['Сколько отелей и номеров','Сколько времени уходит на сверку выручки'],
+ agro:['Площадь и число полей','Затраты на топливо за сезон']
+};
+const RISKCUR={'1С:УПП':'1С:УПП снята с развития: изменения законодательства и доработки будут обходиться всё дороже','SAP':'Зарубежная система: риски поддержки, лицензий и обновлений','Другая зарубежная':'Зарубежная система: риски поддержки, лицензий и обновлений','SAP PM':'Зарубежная система: риски поддержки, лицензий и обновлений','SAP HCM':'Зарубежная система: риски поддержки, лицензий и обновлений','IBM Maximo':'Зарубежная система: риски поддержки, лицензий и обновлений','ServiceNow':'Зарубежная система: риски поддержки, лицензий и обновлений','Power BI':'Зарубежная BI: риски лицензий и обновлений','Qlik':'Зарубежная BI: риски лицензий и обновлений','Excel':'Данные в Excel: ошибки в формулах, разные версии файлов, всё держится на конкретных людях','Вручную':'Ручная работа: ошибки ввода, и штат растёт вместе с объёмом','Почта и папки':'Договоры и согласования теряются в почте, нет контроля сроков','Почта и телефон':'Заявки теряются, нет статистики по нагрузке','Нет поддержки':'Сбои и обновления решаются по факту, без сроков и ответственного','Свои программисты':'Знания о доработках у одного-двух людей'};
+const ITNEED=[[/./,'Лицензии 1С: платформа и клиентские места'],[/./,'Сервер 1С и СУБД (PostgreSQL или MS SQL)'],[/./,'Ответственный от ИТ на проекте и доступы для интеграций'],
+ [/WMS|ТСД/,'Терминалы сбора данных и Wi-Fi на складе'],[/GPS/,'Трекеры на транспорт'],[/водителя|обходчик/,'Смартфоны или планшеты у сотрудников'],[/PIX Оператор/,'Сервер в контуре компании для ИИ-агента или разрешение на облако; для отчётов в конфигурации нужна БСП'],[/PIX RPA/,'Виртуальные машины для роботов'],[/Кадровый ЭДО|Документооборот/,'Электронные подписи сотрудников и руководителей'],[/BI|DWH|Аналитика/,'Сервер для BI или хранилища данных'],[/Битрикс24/,'Битрикс24: облако или коробка, по требованиям ИБ']];
+function outBlocks(){return uniq([...focusIds(),...changed().map(c=>c.id)])}
+function riskList(){const r=[];changed().forEach(c=>sv(c.id).cur.forEach(x=>{if(RISKCUR[x]&&!r.includes(RISKCUR[x]))r.push(RISKCUR[x])}));return r}
+function itList(){const names=newNames().join(' | ');const r=ITNEED.filter(([re])=>re.test(names)||re.source==='.').map(x=>x[1]);if(core().kind==='new')r.push('Выгрузки из старых систем для переноса данных');if(L.ext.includes('Честный знак'))r.push('Сканеры 2D-кодов для маркировки');return uniq(r)}
+function roadStages(){
+  const f=focusIds().filter(id=>changed().some(c=>c.id===id)),rest=changed().map(c=>c.id).filter(id=>!f.includes(id));
+  const nm=id=>CM[id].n+': '+(sv(id).tgt.join(', ')||'подберём');
+  const st=[['Обследование',['Разбираем процессы и системы','Фиксируем объём, сроки и бюджет по очередям']]];
+  if(f.length)st.push(['Первая очередь',f.map(nm)]);
+  if(rest.length)st.push([f.length?'Следующие очереди':'Очереди внедрения',rest.map(nm)]);
+  if(!changed().some(c=>c.id==='rpa'||c.id==='bi'))st.push(['Развитие',['Аналитика и ИИ-агенты поверх работающих систем']]);
+  st.push(['Поддержка',['Сопровождение и доработки по мере роста']]);
+  return st;
+}
 function docSVG(){
-  const W=800,pad=60;let y=0,b='';const cuts=[];
-  const sec=(title)=>{cuts.push(y);y+=34;b+=T(pad,y,title,{s:17,w:700});y+=10;b+=`<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="${COL.line}"/>`;y+=14};
+  const W=800,pad=60,ok=outKeys();let y=0,b='',num=0;const cuts=[];
+  const has=k=>ok.includes(k);
+  const sec=(title)=>{cuts.push(y);y+=34;b+=T(pad,y,(++num)+'. '+title,{s:17,w:700});y+=10;b+=`<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="${COL.line}"/>`;y+=14};
+  const groups=(gs,mark)=>{gs.forEach(g=>{if(g.title){b+=T(pad,y+14,g.title,{s:13,w:700,c:COL.magInk});y+=24}
+      g.items.forEach(m=>{b+=mark==='box'?`<rect x="${pad}" y="${y+2}" width="14" height="14" rx="3" fill="#fff" stroke="${COL.mag}" stroke-width="1.4"/>`:`<circle cx="${pad+6}" cy="${y+9}" r="3.5" fill="${COL.mag}"/>`;const ls=wrap(m,78);ls.forEach((l,j)=>{b+=T(pad+26,y+14+j*18,l,{s:14})});y+=ls.length*18+8});y+=8})};
+  const blk=outBlocks();
   // шапка
   b+=`<rect x="0" y="0" width="${W}" height="8" fill="${COL.mag}"/>`;
   b+=T(pad,52,'первый',{s:22,w:700})+T(pad+83,52,'бит',{s:22,w:700,c:COL.mag})+T(pad+128,52,'Спортивная',{s:13,c:COL.mut});
   b+=T(W-pad,52,new Date().toLocaleDateString('ru-RU'),{s:13,c:COL.mut,a:'end'});
-  y=98;wrap('Предварительная схема для '+(L.company||'вашей компании'),48).forEach(l=>{b+=T(pad,y,l,{s:24,w:700});y+=30});
-  b+=T(pad,y,'По итогам разговора на '+EVENT_P+'. Уточним на встрече на вашей реальной архитектуре.',{s:13,c:COL.mut});y+=6;
-  // архитектура
-  sec('1. Как это встраивается в ваши системы');
-  if(touched().length){const a=arch();b+=`<g transform="translate(${(W-680)/2} ${y})">${a.g}</g>`;y+=a.h;const t=table(pad,y,W-2*pad);b+=t.g;y+=t.h+8;
-    if(a.order.length||L.ext.length){cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
-      const f=flowsTable(pad,y,W-2*pad,a);b+=f.g;y+=f.h+8}}
-  else{b+=T(pad,y+16,'Системы не отмечены.',{c:COL.mut});y+=30}
-  // процесс
-  const pks=procKeys();let num=1;
-  pks.forEach(pk=>{const pr=P[pk];sec((++num)+'. Как будет идти процесс: '+pr.n.toLowerCase());
+  y=98;wrap((L.company||'Ваша компания')+': что можно сделать',48).forEach(l=>{b+=T(pad,y,l,{s:24,w:700});y+=30});
+  b+=T(pad,y,'По итогам разговора на '+EVENT_P+'. Всё составлено со слов, уточним на встрече.',{s:13,c:COL.mut});y+=6;
+  if(has('arch')){sec('Как это встраивается в ваши системы');
+    if(touched().length){const a=arch();b+=`<g transform="translate(${(W-680)/2} ${y})">${a.g}</g>`;y+=a.h;const t=table(pad,y,W-2*pad);b+=t.g;y+=t.h+8;
+      if(a.order.length||L.ext.length){cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
+        const f=flowsTable(pad,y,W-2*pad,a);b+=f.g;y+=f.h+8}}
+    else{b+=T(pad,y+16,'Системы не отмечены.',{c:COL.mut});y+=30}}
+  if(has('proc'))procKeys().forEach(pk=>{const pr=P[pk];sec('Как будет идти процесс: '+pr.n.toLowerCase());
     pr.s.forEach((st,i)=>{const h=46;b+=`<rect x="${pad}" y="${y}" width="190" height="${h}" rx="8" fill="${COL.ink}"/>`+T(pad+14,y+28,st[0].length>22?st[0].slice(0,21)+'…':st[0],{c:'#fff',w:600,s:13});
       b+=`<rect x="${pad+200}" y="${y}" width="${W-2*pad-200}" height="${h}" rx="8" fill="#fff" stroke="${COL.line}"/>`+T(pad+216,y+28,st[1],{s:14});
       y+=h;if(i<pr.s.length-1){b+=`<line x1="${pad+95}" y1="${y+2}" x2="${pad+95}" y2="${y+14}" stroke="#5b6b78" stroke-width="1.2" marker-end="url(#ah)"/>`;y+=16}});
     y+=4;});
-  // материалы, по блокам
-  const mg=matGroups().filter(g=>g.items.length);
-  if(mg.length){sec((++num)+'. Что прислать, чтобы мы собрали сквозной пример на ваших данных');
-    mg.forEach(g=>{b+=T(pad,y+14,g.title,{s:13,w:700,c:COL.magInk});y+=24;
-      g.items.forEach(m=>{b+=`<rect x="${pad}" y="${y+2}" width="14" height="14" rx="3" fill="#fff" stroke="${COL.mag}" stroke-width="1.4"/>`;const ls=wrap(m,78);ls.forEach((l,j)=>{b+=T(pad+26,y+14+j*18,l,{s:14})});y+=ls.length*18+8});
-      y+=8})}
-  // договорённость
+  if(has('eff')){const gs=blk.filter(id=>EFF[id]).map(id=>({title:CM[id].n,items:EFF[id]}));if(gs.length){sec('Что это может дать');groups(gs,'dot');b+=T(pad,y,'Цифры эффекта посчитаем вместе на ваших данных.',{s:12,c:COL.mut});y+=14}}
+  if(has('calc')){const gs=blk.filter(id=>CALC[id]).map(id=>({title:CM[id].n,items:CALC[id]}));if(gs.length){sec('Какие цифры собрать, чтобы посчитать эффект');groups(gs,'box')}}
+  if(has('road')&&changed().length){sec('Дорожная карта');
+    roadStages().forEach(([t,items],i,arrS)=>{const ls=items.flatMap(x=>wrap(x,58));const h=Math.max(46,26+ls.length*17);
+      b+=`<rect x="${pad}" y="${y}" width="190" height="${h}" rx="8" fill="${i===1?COL.mag:COL.ink}"/>`+T(pad+14,y+20,'Этап '+(i+1),{c:'#fff',s:11})+T(pad+14,y+37,t.length>22?t.slice(0,21)+'…':t,{c:'#fff',w:600,s:13});
+      b+=`<rect x="${pad+200}" y="${y}" width="${W-2*pad-200}" height="${h}" rx="8" fill="#fff" stroke="${COL.line}"/>`;ls.forEach((l,j)=>{b+=T(pad+216,y+22+j*17,l,{s:13})});
+      y+=h+10});
+    b+=T(pad,y+4,'Сроки и бюджет по очередям фиксируем по итогам обследования.',{s:12,c:COL.mut});y+=14}
+  if(has('risk')){const r=riskList();if(r.length){sec('Риски, если ничего не менять');groups([{items:r}],'dot')}}
+  if(has('it')){sec('Что потребуется от ИТ');groups([{items:itList()}],'box')}
+  if(has('mats')){const mg=matGroups().filter(g=>g.items.length);
+    if(mg.length){sec('Что прислать, чтобы мы собрали пример на ваших данных');groups(mg,'box')}}
   const mt=agreeText(true);
-  sec((++num)+'. Договорились');
+  sec('Договорились');
   b+=T(pad,y+16,mt?mt.charAt(0).toUpperCase()+mt.slice(1)+'.':'Созвонимся и выберем время встречи.',{s:15,w:600});y+=26;
-  b+=T(pad,y+16,'На встрече покажем сквозной пример на ваших данных и уточним схему.',{s:14,c:COL.mut});y+=34;
-  // подвал
-  cuts.push(y);y+=16;b+=`<rect x="0" y="${y}" width="${W}" height="96" fill="${COL.ink}"/>`;
-  b+=T(pad,y+34,ME.name+', '+ME.pos,{c:'#fff',s:14,w:600})+T(pad,y+56,[ME.phone,ME.email].filter(Boolean).join('   '),{c:'#c9d6df',s:13})+T(pad,y+76,'Схема предварительная и составлена со слов, без обследования.',{c:'#8fa3b1',s:11});
+  b+=T(pad,y+16,'На встрече покажем пример на ваших данных и ответим на вопросы.',{s:14,c:COL.mut});y+=34;
+  y+=16;b+=`<rect x="0" y="${y}" width="${W}" height="96" fill="${COL.ink}"/>`;
+  b+=T(pad,y+34,ME.name+', '+ME.pos,{c:'#fff',s:14,w:600})+T(pad,y+56,[ME.phone,ME.email].filter(Boolean).join('   '),{c:'#c9d6df',s:13})+T(pad,y+76,'Материалы предварительные и составлены со слов, без обследования.',{c:'#8fa3b1',s:11});
   y+=96;
   const inner=`${ARR}<rect width="${W}" height="${y}" fill="#fff"/>${b}`;
   return {svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${y}" viewBox="0 0 ${W} ${y}">${inner}</svg>`,inner,cuts,w:W,h:y};
@@ -452,13 +519,17 @@ function docSVG(){
 /* ===================== тексты ===================== */
 function emailText(){
   const nm=firstName(), nn=newNames(), pks=procKeys(), mg=matGroups().filter(g=>g.items.length), mt=agreeText(true);
-  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Во вложении предварительная схема: ${nn.length?'как '+nn.slice(0,4).join(', ')+' встанут в вашу текущую архитектуру':'ваша текущая архитектура и что в ней можно поменять'}${pks.length?(pks.length>1?', и примеры процессов ':', и пример процесса ')+pks.map(k=>'«'+P[k].n.toLowerCase()+'»').join(', '):''}. Схема собрана со слов, на встрече уточним её на вашей реальной архитектуре.\n`;
-  if(mg.length){t+=`\nЧтобы показать сквозной пример на ваших данных, пришлите, пожалуйста, до встречи:\n`;mg.forEach(g=>{t+=`\n${g.title}:\n${g.items.map(m=>'— '+m).join('\n')}\n`})}
+  const ok=outKeys(),parts=[];
+  if(ok.includes('arch'))parts.push(nn.length?'схема: как '+nn.slice(0,4).join(', ')+' встанут в вашу текущую архитектуру и чем системы будут обмениваться':'схема ваших систем и обменов между ними');
+  if(ok.includes('proc')&&pks.length)parts.push((pks.length>1?'описание процессов ':'описание процесса ')+pks.map(k=>'«'+P[k].n.toLowerCase()+'»').join(', '));
+  ['eff','calc','road','risk','it'].forEach(k=>{if(ok.includes(k))parts.push(OUTN[k].charAt(0).toLowerCase()+OUTN[k].slice(1))});
+  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Как обещал, во вложении материалы по вашей задаче:\n${parts.map(x=>'— '+x).join('\n')}\n\nВсё составлено со слов, на встрече уточним на ваших данных.\n`;
+  if(outKeys().includes('mats')&&mg.length){t+=`\nЧтобы показать сквозной пример на ваших данных, пришлите, пожалуйста, до встречи:\n`;mg.forEach(g=>{t+=`\n${g.title}:\n${g.items.map(m=>'— '+m).join('\n')}\n`})}
   t+=mt?`\nДоговорились: ${mt}.\n`:`\nПредлагаю созвониться на этой неделе и выбрать время встречи.\n`;
   t+=`\n${ME.name}\n${ME.pos}, «Первый Бит», офис Спортивная\n${ME.phone}\n${ME.email}`;
   return t;
 }
-const emailSubject=()=>'Схема и договорённости после форума 1С:ERP'+(L.company?' — '+L.company:'');
+const emailSubject=()=>'Материалы и договорённости после форума 1С:ERP'+(L.company?' — '+L.company:'');
 function summaryText(){
   const a=auto(), line=(k,v)=>v?`${k}: ${v}\n`:'';
   let t=`ЛИД · ${EVENT}${L.example?' · ПРИМЕР':''}\nИсточник: ${L.src==='client'?'клиент сам, по QR':'разговор, '+ME.name}\n\n`;
@@ -472,14 +543,15 @@ function summaryText(){
   t+=line('Триггер',arr(L.trigger).join(', '))+line('Сроки',L.timing)+line('Бюджет',L.budget);
   const dirs=[...new Set(changed().map(c=>c.dir))];
   t+=line('Куда думать',dirs.join(', '));
-  t+=line('Запросили материалы',mats().length?mats().length+' пунктов':'');
+  t+=line('Отправляем',outKeys().map(k=>OUTN[k]).join(', '));
+  t+=line('Запросили материалы',outKeys().includes('mats')&&mats().length?mats().length+' пунктов':'');
   t+=line('Договорённость',L.when==='later'?'встречу не назначили'+(L.later?', вернуться: '+L.later.toLowerCase():''):meetText(true))+line('Комментарий',L.comment);
   t+=`\nОценка: ${a.pot}${a.urg}`;
   return t;
 }
 
 /* ===================== выгрузка ===================== */
-const fname=()=>('Схема_'+(L.company||'клиент')).replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_').slice(0,60);
+const fname=()=>('Разбор_'+(L.company||'клиент')).replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_').slice(0,60);
 function printSheet(){
   saveLead();
   const d=docSVG(),pa=$('#printArea'),PH=Math.floor(d.w*277/194);
@@ -495,7 +567,7 @@ function printSheet(){
 const chip=(path,v,lbl,multi)=>{const cur=getP(path);const on=multi?(cur||[]).includes(v):cur===v;return `<button type="button" class="chip" data-p="${path}" data-v="${esc(v)}" data-m="${multi?1:0}" aria-pressed="${on}">${esc(lbl||v)}</button>`};
 const chips=(path,list,multi)=>`<div class="chips">${list.map(v=>Array.isArray(v)?chip(path,v[0],v[1],multi):chip(path,v,null,multi)).join('')}</div>`;
 const inp=(path,label,type='text',ph='')=>`<label class="f">${esc(label)}<input id="i_${path.replace(/\./g,'_')}" data-i="${path}" type="${type}" value="${esc(getP(path)||'')}" placeholder="${esc(ph)}"${type==='tel'?' inputmode="tel"':''}></label>`;
-const STEPS=()=>CLIENT()?['О вас','Системы','Задача','Схема','Получить']:['Кто','Системы','Хотят','Схема','Отправка'];
+const STEPS=()=>CLIENT()?['О вас','Системы','Задача','Результат','Получить']:['Кто','Системы','Хотят','Что даём','Отправка'];
 
 function s0(){
   const cl=CLIENT();
@@ -527,12 +599,14 @@ function s2(){
 }
 function s3(){
   if(!arr(L.proc).length)L.proc=procKeys().slice();
+  if(!arr(L.out).length)L.out=outDefaults();
   const d=docSVG(), procOpts=procOptions(), mg=matGroups();
-  return `<h1>${CLIENT()?'Ваша схема':'Схема для клиента'}</h1>
+  return `<h1>${CLIENT()?'Ваши материалы':'Что получит клиент'}</h1>
+  <p class="hint">${CLIENT()?'Отметьте, что вам пригодится.':'Отмечено по ролям собеседников, можно поменять.'}</p>${chips('out',OUTS,true)}
   <p class="hint">${CLIENT()?'Предварительная, со слов. Уточним на встрече.':'Можно показать клиенту прямо с экрана.'}</p>
-  <div class="sheet">${d.svg.replace('<svg ','<svg role="img" aria-label="Схема для клиента" ')}</div>
-  ${procOpts.length>1?`<h2>Какие процессы показать</h2><p class="hint">Можно несколько, каждый пойдёт в PDF отдельным разделом.</p>${chips('proc',procOpts.map(k=>[k,P[k].n]),true)}`:''}
-  ${mg.length>1&&!CLIENT()?`<h2>Материалы для сквозного примера</h2><p class="hint">Сгруппированы по блокам. Сними галочку с того, что не нужно.</p>${mg.map(g=>`<div class="ct" style="padding:4px 14px 8px"><div class="lbl" style="margin:8px 0 2px">${esc(g.title)}</div><div class="mats">${g.all.map(m=>`<label><input type="checkbox" data-mat="${esc(g.id+'|'+m)}" ${L.matsOff.includes(g.id+'|'+m)?'':'checked'}><span>${esc(m)}</span></label>`).join('')}</div></div>`).join('')}`:''}`;
+  <h2>Предпросмотр</h2><div class="sheet">${d.svg.replace('<svg ','<svg role="img" aria-label="Схема для клиента" ')}</div>
+  ${procOpts.length>1&&outKeys().includes('proc')?`<h2>Какие процессы показать</h2><p class="hint">Можно несколько, каждый пойдёт в PDF отдельным разделом.</p>${chips('proc',procOpts.map(k=>[k,P[k].n]),true)}`:''}
+  ${mg.length>1&&!CLIENT()&&outKeys().includes('mats')?`<h2>Материалы для сквозного примера</h2><p class="hint">Сгруппированы по блокам. Сними галочку с того, что не нужно.</p>${mg.map(g=>`<div class="ct" style="padding:4px 14px 8px"><div class="lbl" style="margin:8px 0 2px">${esc(g.title)}</div><div class="mats">${g.all.map(m=>`<label><input type="checkbox" data-mat="${esc(g.id+'|'+m)}" ${L.matsOff.includes(g.id+'|'+m)?'':'checked'}><span>${esc(m)}</span></label>`).join('')}</div></div>`).join('')}`:''}`;
 }
 function s4(){
   if(CLIENT())return s4client();
@@ -589,7 +663,7 @@ function render(keep){
   $('#stepsBar').innerHTML=f?S.map((n,i)=>`<button type="button" data-step="${i}" class="${i<=step?'on':''} ${i===step?'cur':''}" ${i===step?'aria-current="step"':''}>${esc(n)}</button>`).join(''):'';
   $('#stepName').textContent='';
   $('#app').innerHTML=view==='leads'?leadsHTML():view==='set'?setHTML():[s0,s1,s2,s3,s4][step]();
-  const nl=['Дальше','Дальше','Показать схему',CLIENT()?'Получить схему':'К отправке'][step];
+  const nl=['Дальше','Дальше','Показать',CLIENT()?'Получить схему':'К отправке'][step];
   $('#barIn').innerHTML=!f?`<button class="btn primary" type="button" id="toForm">К анкете</button>`
     :step<4?`${step?'<button class="btn" type="button" id="prev">Назад</button>':''}<button class="btn primary" type="button" id="next">${nl}</button>`
     :`<button class="btn" type="button" id="prev">Назад</button>${CLIENT()?'':'<button class="btn primary" type="button" id="newLead">Следующий</button>'}`;
@@ -613,7 +687,7 @@ document.addEventListener('click',e=>{
   if(c){const p=c.dataset.p,v=c.dataset.v;
     if(c.dataset.m==='1'){const a=getP(p)||[];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v);setP(p,a)}
     else setP(p,getP(p)===v?'':v);
-    if(p==='focus')L.proc=[];
+    if(p==='focus')L.proc=[];if(p==='role')L.out=[];
     save();saveLead();render(true);return}
   const o=e.target.closest('[data-open]');if(o){open=open===o.dataset.open?'':o.dataset.open;render(true);return}
   const b=e.target.closest('button');if(!b)return;const id=b.id;
