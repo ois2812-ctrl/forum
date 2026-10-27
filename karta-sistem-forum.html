@@ -28,10 +28,11 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .brand b{color:var(--magenta)}
 .brand small{font-weight:400;color:var(--muted)}
 .nav{display:flex;gap:6px}
-.nav button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 11px;cursor:pointer}
+.nav button{white-space:nowrap;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 11px;cursor:pointer}
 .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:10px}
-.steps span{height:4px;border-radius:2px;background:var(--line)}
-.steps span.on{background:var(--magenta)}
+.steps button{font:inherit;font-size:11.5px;line-height:1.2;color:var(--muted);background:none;border:none;border-top:4px solid var(--line);border-radius:0;padding:6px 2px 2px;cursor:pointer;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steps button.on{border-top-color:var(--magenta);color:var(--fg)}
+.steps button.cur{color:var(--magenta);font-weight:700}
 .stepname{font-size:12px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
 h1{font-size:24px;line-height:1.15;margin:0 0 6px;text-wrap:balance;letter-spacing:-.015em}
 h2{font-size:15px;margin:20px 0 8px;font-weight:600}
@@ -494,7 +495,7 @@ function printSheet(){
 const chip=(path,v,lbl,multi)=>{const cur=getP(path);const on=multi?(cur||[]).includes(v):cur===v;return `<button type="button" class="chip" data-p="${path}" data-v="${esc(v)}" data-m="${multi?1:0}" aria-pressed="${on}">${esc(lbl||v)}</button>`};
 const chips=(path,list,multi)=>`<div class="chips">${list.map(v=>Array.isArray(v)?chip(path,v[0],v[1],multi):chip(path,v,null,multi)).join('')}</div>`;
 const inp=(path,label,type='text',ph='')=>`<label class="f">${esc(label)}<input id="i_${path.replace(/\./g,'_')}" data-i="${path}" type="${type}" value="${esc(getP(path)||'')}" placeholder="${esc(ph)}"${type==='tel'?' inputmode="tel"':''}></label>`;
-const STEPS=()=>CLIENT()?['О вас','Системы','Задача','Схема','Получить']:['Кто это','Системы','Что хотят','Схема','Отправка'];
+const STEPS=()=>CLIENT()?['О вас','Системы','Задача','Схема','Получить']:['Кто','Системы','Хотят','Схема','Отправка'];
 
 function s0(){
   const cl=CLIENT();
@@ -585,8 +586,8 @@ function setHTML(){
 function render(keep){
   const y=window.scrollY, f=view==='form', S=STEPS();
   $('#nav').innerHTML=CLIENT()?'':`<button id="navNew" type="button">Новый</button><button id="navLeads" type="button">Лиды${LEADS.length?' ('+LEADS.length+')':''}</button><button id="navSet" type="button" aria-label="Настройки">⚙</button>`;
-  $('#stepsBar').innerHTML=f?S.map((_,i)=>`<span class="${i<=step?'on':''}"></span>`).join(''):'';
-  $('#stepName').textContent=f?`${step+1}/5 · ${S[step]}`:'';
+  $('#stepsBar').innerHTML=f?S.map((n,i)=>`<button type="button" data-step="${i}" class="${i<=step?'on':''} ${i===step?'cur':''}" ${i===step?'aria-current="step"':''}>${esc(n)}</button>`).join(''):'';
+  $('#stepName').textContent='';
   $('#app').innerHTML=view==='leads'?leadsHTML():view==='set'?setHTML():[s0,s1,s2,s3,s4][step]();
   const nl=['Дальше','Дальше','Показать схему',CLIENT()?'Получить схему':'К отправке'][step];
   $('#barIn').innerHTML=!f?`<button class="btn primary" type="button" id="toForm">К анкете</button>`
@@ -616,6 +617,7 @@ document.addEventListener('click',e=>{
     save();saveLead();render(true);return}
   const o=e.target.closest('[data-open]');if(o){open=open===o.dataset.open?'':o.dataset.open;render(true);return}
   const b=e.target.closest('button');if(!b)return;const id=b.id;
+  if(b.dataset.step!=null){step=+b.dataset.step;open='';save();render();return}
   if(id==='next'){if(step===0&&!L.company.trim()&&!L.fio.trim()){toast('Впиши хотя бы компанию');return}step++;open='';save();render()}
   else if(id==='prev'){step--;render()}
   else if(id==='navNew'||id==='newLead'){L=blank();step=0;view='form';open='';save();render()}
