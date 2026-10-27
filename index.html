@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Карта систем ERP-форум</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one column for a phone in hand; sticky step bar top, sticky action bar bottom; the client document is a white sheet */
+:root{
+  --magenta:#D2026D; --on-magenta:#fff; --teal:#1fae9e; --navy:#112434;
+  --bg:#F4F6F7; --surface:#fff; --sunk:#eaeef1; --fg:#112434; --muted:#5b6b78; --line:#dde3e7;
+  --chip-on:#112434; --chip-on-fg:#fff; --warn-bg:#fff4d6; --warn-fg:#6b4e00;
+  --font:"Golos Text","Suisse Int'l",Arial,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1a26; --surface:#132a3b; --sunk:#0f2232; --fg:#e8eef2; --muted:#9db0bd; --line:#24425a;
+  --chip-on:#25C6B3; --chip-on-fg:#0c1a26; --teal:#25C6B3; --magenta:#ff2f8f; --warn-bg:#3a3013; --warn-fg:#f5d98a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1a26; --surface:#132a3b; --sunk:#0f2232; --fg:#e8eef2; --muted:#9db0bd; --line:#24425a;
+  --chip-on:#25C6B3; --chip-on-fg:#0c1a26; --teal:#25C6B3; --magenta:#ff2f8f; --warn-bg:#3a3013; --warn-fg:#f5d98a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--font);font-size:16px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:640px;margin:0 auto;padding-block:0 130px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{font-weight:700;font-size:15px;letter-spacing:-.01em}
+.brand b{color:var(--magenta)}
+.brand small{font-weight:400;color:var(--muted)}
+.nav{display:flex;gap:6px}
+.nav button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 11px;cursor:pointer}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:10px}
+.steps span{height:4px;border-radius:2px;background:var(--line)}
+.steps span.on{background:var(--magenta)}
+.stepname{font-size:12px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
+h1{font-size:24px;line-height:1.15;margin:0 0 6px;text-wrap:balance;letter-spacing:-.015em}
+h2{font-size:15px;margin:20px 0 8px;font-weight:600}
+.hint{color:var(--muted);font-size:14px;margin:0 0 6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:440px){.grid2{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column;gap:10px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+input,textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:70px;resize:vertical}
+input:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 11px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.ct{border:1px solid var(--line);background:var(--surface);border-radius:12px;margin-top:8px}
+.ct>button{font:inherit;width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;background:none;border:none;color:var(--fg);padding:12px 14px;cursor:pointer;text-align:left}
+.ct>button b{font-weight:500}
+.ct>button span{font-size:13px;color:var(--muted);text-align:right}
+.ct>button span.st-new{color:var(--magenta);font-weight:600}
+.ct>button span.st-keep{color:var(--teal);font-weight:600}
+.ct .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.ct .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.sheet{background:#fff;border-radius:12px;border:1px solid var(--line);overflow-x:auto;margin-top:10px}
+.sheet svg{display:block;width:100%;height:auto;min-width:520px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px}
+.btn{font:inherit;font-weight:600;font-size:16px;border-radius:12px;padding:13px 16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.primary{background:var(--magenta);color:var(--on-magenta);border-color:var(--magenta);flex:1}
+.btn.big{width:100%;justify-content:flex-start;padding:14px 16px;text-align:left}
+.btn.big .n{width:26px;height:26px;border-radius:50%;background:var(--magenta);color:#fff;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.btn.big small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.btn.sm{font-size:14px;padding:9px 12px;border-radius:10px;font-weight:500}
+.btn[disabled]{opacity:.55}
+.link{background:none;border:none;color:var(--magenta);font:inherit;font-size:14px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.warn{background:var(--warn-bg);color:var(--warn-fg);border-radius:10px;padding:10px 12px;font-size:13px;margin:10px 0}
+.mats label{display:flex;gap:10px;align-items:flex-start;font-size:15px;padding:6px 0}
+.mats input{width:20px;height:20px;flex-shrink:0;margin-top:2px}
+pre.msg{white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;max-height:260px;overflow:auto}
+details{margin-top:8px}
+details summary{cursor:pointer;color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:#112434;color:#fff;padding:9px 14px;border-radius:10px;font-size:14px;z-index:20;max-width:90vw}
+.lead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.lead>div:first-child{min-width:0}
+.lead b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lead small{color:var(--muted)}
+#qr{background:#fff;padding:12px;border-radius:12px;display:inline-block;margin-top:8px}
+.imgout img{width:100%;border-radius:8px;border:1px solid var(--line);margin-top:8px}
+#printArea{display:none}
+@media print{@page{size:A4;margin:8mm}body{background:#fff;padding:0}body>*{display:none!important}#printArea{display:block!important}#printArea svg.pg{width:100%;height:auto;max-height:277mm;display:block;break-after:page;page-break-after:always}#printArea svg.pg:last-child{break-after:auto;page-break-after:auto}html,body{height:auto!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body>
+
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand">первый<b>бит</b> <small>Спортивная</small></div>
+      <div class="nav" id="nav"></div>
+    </div>
+    <div class="steps" id="stepsBar"></div>
+    <div class="stepname" id="stepName"></div>
+  </header>
+  <main id="app"><h1>Страница открылась в просмотрщике файлов</h1><p class="hint" style="font-size:16px">Здесь она не работает: просмотрщик не запускает скрипты. Откройте её по ссылке в Safari или Chrome.</p></main>
+</div>
+<div class="bar"><div class="in" id="barIn"></div></div>
+<div id="printArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ===================== СПРАВОЧНИКИ (черновик, проверить с архитекторами) ===================== */
+const EVENT='форум 1С:ERP, 26 ноября 2026', EVENT_P='форуме 1С:ERP 26 ноября';
+const C=[
+ {id:'acc',n:'Бухучёт и налоги',dir:'ERP',cur:['1С:Бухгалтерия','1С:УПП','1С:КА','1С:ERP','1С:УХ','SAP','Другая зарубежная','Другая'],tgt:['1С:ERP','1С:ERP Управление холдингом','1С:КА','1С:Бухгалтерия КОРП','1С:Управление холдингом','PIX Оператор: ИИ-агент'],x:'проводки, налоги'},
+ {id:'fin',n:'Бюджет, казначейство, МСФО',dir:'Финансы и УХ',cur:['Excel','1С:УХ','Бит.Финанс','1С:ERP','1С:КА','SAP','Другая'],tgt:['Бит.Финанс','1С:ERP Управление холдингом','1С:Управление холдингом','1С:ERP','1С:КА','BI для план-факта','PIX Оператор: ИИ-агент'],x:'факт, платежи'},
+ {id:'prod',n:'Производство',dir:'ERP',cur:['1С:УПП','1С:ERP','1С:КА','MES','SAP','Excel','Другая'],tgt:['1С:ERP','1С:КА','1С:MES'],x:'выпуск, потребность'},
+ {id:'build',n:'Строительство и проекты',dir:'Бит.Строительство',cur:['Excel','1С:Бухгалтерия','1С:ERP','Другая'],tgt:['Бит.Строительство','1С:ERP Управление строительной организацией'],x:'затраты по объектам'},
+ {id:'wh',n:'Склад и логистика',dir:'ERP и WMS',cur:['1С:УТ','1С:КА','1С:ERP','1С:WMS','SAP','Excel','Другая'],tgt:['1С:WMS','1С:УТ','1С:ERP','1С:КА','Мобильный склад с ТСД'],x:'остатки, заказы'},
+ {id:'sales',n:'Продажи и CRM',dir:'Битрикс24 и CRM',cur:['Битрикс24','amoCRM','1С:CRM','1С:УТ','Excel','Другая'],tgt:['Битрикс24','1С:CRM','Интеграция CRM с 1С','Сайт на 1С-Битрикс'],x:'заказы, клиенты'},
+ {id:'hr',n:'Кадры и зарплата',dir:'ЗУП',cur:['1С:ЗУП','1С:ЗУП КОРП','SAP HCM','Другая'],tgt:['1С:ЗУП КОРП','1С:ЗУП','1С:Кадровый ЭДО','HR-портал на Битрикс24'],x:'проводки по зарплате'},
+ {id:'doc',n:'Документооборот',dir:'Документооборот',cur:['1С:Документооборот','Directum','ELMA','Почта и папки','Другая'],tgt:['1С:Документооборот КОРП','1С:Документооборот','Согласования в Битрикс24'],x:'договоры, статусы'},
+ {id:'nsi',n:'НСИ и справочники',dir:'НСИ и ИИ',cur:['В учётной системе','1С:MDM','Excel','Другая'],tgt:['1С:MDM','ИИ-нормализация НСИ','Регламент ведения НСИ'],x:'справочники'},
+ {id:'toir',n:'Ремонты и эксплуатация',dir:'ТОиР',cur:['1С:ТОИР','1С:ERP (ремонты)','SAP PM','IBM Maximo','Excel','Другая'],tgt:['1С:ТОИР КОРП','1С:ТОИР ПРОФ','Мобильный обходчик'],x:'заявки на ЗИП, затраты'},
+ {id:'bi',n:'Отчётность и аналитика',dir:'BI и DWH',cur:['Excel','Отчёты 1С','Power BI','Qlik','Visiology','Другая'],tgt:['BI-дашборды','Хранилище данных (DWH)','1С:Аналитика'],x:'данные для отчётов'},
+ {id:'rpa',n:'Рутина, ИИ-агенты, роботы',dir:'PIX',cur:['Вручную','Чат-боты','Свои скрипты','RPA другого вендора','Другая'],tgt:['PIX Оператор: ИИ-агент','PIX RPA: роботы','ИИ-распознавание документов'],x:'данные 1С, почта, мессенджеры'},
+ {id:'itsm',n:'ИТ-заявки',dir:'ITSM',cur:['Почта и телефон','1С:Итилиум','Jira','ServiceNow','Другая'],tgt:['1С:Итилиум','Сервис-деск в Битрикс24'],x:'пользователи, оргструктура'},
+ {id:'supp',n:'Поддержка 1С',dir:'Сопровождение',cur:['Свои программисты','Другой партнёр','Нет поддержки'],tgt:['Сопровождение 1С по SLA','ИТ-аутсорсинг'],x:'обращения, доработки'}
+];
+const IC={ // отраслевые блоки: появляются при выборе отрасли (черновик, сверить с прайсом)
+ 'Транспорт и логистика':[{id:'trans',n:'Автотранспорт и перевозки',dir:'Транспорт',cur:['1С:УАТ','1С:TMS','Excel','Своя система','Другая'],tgt:['1С:Управление автотранспортом ПРОФ','1С:Управление автотранспортом КОРП','1С:TMS Логистика','1С:Транспортная логистика КОРП','Мобильное приложение водителя','Мониторинг GPS и ГЛОНАСС'],x:'рейсы, путевые листы, ГСМ'}],
+ 'Строительство':[{id:'build',n:'Строительство и проекты',dir:'Бит.Строительство',cur:['Excel','1С:Бухгалтерия','1С:ERP','Другая'],tgt:['Бит.Строительство','1С:ERP Управление строительной организацией'],x:'затраты по объектам'}],
+ 'Торговля и дистрибуция':[{id:'retail',n:'Розница и магазины',dir:'Торговля',cur:['1С:Розница','1С:УТ','Кассовая программа','Другая'],tgt:['1С:Розница','1С:УТ','1С:КА','Интеграция с маркетплейсами'],x:'продажи, остатки'}],
+ 'Гостиницы и недвижимость':[{id:'hotel',n:'Гостиница и объекты',dir:'Гостиницы и недвижимость',cur:['PMS отеля','1С:Отель','1С:Бухгалтерия','Excel','Другая'],tgt:['1С:Отель','1С:Аренда и управление недвижимостью','Интеграция PMS с 1С'],x:'выручка, номерной фонд'}],
+ 'Агро и пищевое':[{id:'agro',n:'Сельхозпроизводство',dir:'АПК',cur:['1С:Бухгалтерия','1С:ERP','Excel','Другая'],tgt:['1С:ERP Агропромышленный комплекс','1С:ERP','Учёт полей и техники'],x:'урожай, затраты, техника'}]
+};
+Object.values(IC).flat().forEach(c=>{const i=C.findIndex(x=>x.id===c.id);if(i>=0)C.splice(i,1)});
+const ALLC=[...C,...Object.values(IC).flat()];
+const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
+const CM={};ALLC.forEach(c=>CM[c.id]=c);
+const indC=()=>{const out=[];arr(L.industry).forEach(i=>(IC[i]||[]).forEach(c=>{if(!out.includes(c))out.push(c)}));return out};
+const CC=()=>{const ic=indC();return [...ic,...ALLC.filter(c=>!ic.includes(c)&&(C.includes(c)||(L.sys[c.id]&&L.sys[c.id].st)))]};
+const ST=[['keep','Оставляем'],['add','Дополняем'],['replace','Меняем'],['none','Нет, нужна'],['q','Не знаю']];
+const EXT=['Банк','ЭДО','Честный знак','ЕГАИС','ФНС','Сайт','Маркетплейсы'];
+const IND=['Производство','Торговля и дистрибуция','Строительство','Гостиницы и недвижимость','Энергетика','Добыча','Транспорт и логистика','Агро и пищевое','Услуги','Другое'];
+const SIZE=['до 100','100–500','500–1 000','1 000–3 000','больше 3 000'];
+const ROLE=['Собственник или ГД','Финансы','ИТ','Производство','Главный инженер','Коммерция','HR','Бухгалтерия'];
+const TIMING=['В ближайшие 3 месяца','3–6 месяцев','6–12 месяцев','Пока изучают'];
+const TRIG=['Бюджет на 2027','Уход с иностранного ПО','Рост или новая площадка','Требование головной компании','Конец поддержки системы','Нет события'];
+const BUDG=['Заложен','Будут закладывать','Нет','Не знаю'];
+const MEETF=['Онлайн','У клиента','У нас в офисе'];
+const LATER=['Через 2–3 дня','Через неделю','Через месяц','После праздников','Клиент сам напишет'];
+
+const P={
+ erp:{n:'Заказ клиента: от заказа до оплаты',s:[['Менеджер','Создаёт заказ в CRM или в 1С'],['1С:ERP','Резервирует товар и проверяет кредитный лимит'],['Склад','Собирает и отгружает заказ'],['Бухгалтерия','УПД уходит клиенту через ЭДО'],['Казначейство','Оплата из банка сама закрывает долг']]},
+ acc:{n:'Закрытие месяца',s:[['Бухгалтерия','Первичка уже в системе, без ручного ввода'],['Система','Находит ошибки учёта до закрытия'],['Бухгалтерия','Закрывает месяц регламентными операциями'],['Финансы','Сразу получает управленческую отчётность'],['ФНС','Отчётность уходит из системы']]},
+ prod:{n:'Производство: от заказа до себестоимости',s:[['Плановый отдел','Заказ на производство из заказа клиента'],['1С:ERP','Считает потребность в материалах и мощностях'],['Снабжение','Закупает то, чего не хватает'],['Цех','Отмечает выпуск по этапам'],['Экономист','Видит фактическую себестоимость после выпуска']]},
+ fin:{n:'Заявка на оплату',s:[['Инициатор','Создаёт заявку на оплату по договору'],['Система','Проверяет остаток бюджета по статье и ЦФО'],['Руководитель ЦФО','Согласует с телефона'],['Казначейство','Ставит платёж в платёжный календарь'],['Банк','Платёж уходит, факт попадает в бюджет']]},
+ wh:{n:'Склад: приёмка и отгрузка',s:[['Кладовщик','Принимает товар с ТСД и сверяет с заказом'],['WMS','Подсказывает ячейку для размещения'],['Сборщик','Отбирает заказ по маршруту на ТСД'],['Контролёр','Проверяет и упаковывает'],['Учётная система','Сама получает отгрузку и остатки']]},
+ sales:{n:'Продажа: от заявки до оплаты',s:[['Сайт или звонок','Заявка сама попадает в CRM'],['Менеджер','Ведёт сделку, делает КП из шаблона'],['CRM','Передаёт заказ в учётную систему'],['Учётная система','Выставляет счёт и отгружает'],['Менеджер','Видит оплату в карточке сделки']]},
+ hr:{n:'Приём сотрудника',s:[['Руководитель','Создаёт заявку на подбор'],['HR','Оформляет приём, документы подписываются электронно'],['1С:ЗУП КОРП','Начисляет зарплату по графику'],['Бухгалтерия','Получает проводки по зарплате'],['Сотрудник','Видит расчётный листок в личном кабинете']]},
+ doc:{n:'Согласование договора',s:[['Инициатор','Создаёт договор из шаблона'],['Юрист и финансы','Согласуют параллельно, с замечаниями'],['Руководитель','Подписывает электронной подписью'],['Система','Регистрирует договор и передаёт в учёт'],['Ответственный','Получает напоминания о сроках']]},
+ nsi:{n:'Новая позиция номенклатуры',s:[['Сотрудник','Запрашивает новую позицию'],['ИИ','Ищет дубли и предлагает классификацию'],['Эксперт НСИ','Подтверждает или правит'],['MDM','Раздаёт позицию во все системы'],['Все системы','Работают с одним справочником']]},
+ trans:{n:'Рейс: от заявки до закрытия',s:[['Диспетчер','Принимает заявку на перевозку'],['Система','Подбирает ТС и водителя, планирует рейс'],['Водитель','Получает путевой лист в приложении'],['GPS-мониторинг','Передаёт пробег, стоянки и расход топлива'],['Бухгалтерия','Закрывает рейс: затраты на ТС и счёт клиенту']]},
+ retail:{n:'Продажа в магазине',s:[['Кассир','Пробивает чек'],['1С:Розница','Списывает остаток и отправляет чек в ОФД'],['Система','Ночью передаёт продажи в учёт'],['Закупщик','Видит, что заказать по остаткам'],['Руководитель','Видит выручку по магазинам утром']]},
+ hotel:{n:'Выручка отеля в учёте',s:[['Ресепшн','Заселяет гостя в PMS'],['PMS','Начисляет проживание и услуги'],['Интеграция','Передаёт выручку и оплаты в 1С'],['Бухгалтерия','Сверяет оплаты и закрывает день'],['Управляющий','Видит загрузку и выручку по отелям']]},
+ agro:{n:'Затраты на поле',s:[['Агроном','Планирует работы по полям'],['Механизатор','Выполняет работы, техника отмечается по GPS'],['Склад','Списывает семена, удобрения, ГСМ'],['Система','Собирает затраты на поле и культуру'],['Экономист','Видит себестоимость урожая']]},
+ toir:{n:'Ремонт по дефекту',s:[['Обходчик','Фиксирует дефект с телефона, с фото'],['1С:ТОИР КОРП','Создаёт заявку и наряд'],['Мастер','Назначает исполнителей и материалы'],['Склад','Выдаёт ЗИП по наряду'],['Главный инженер','Видит затраты и простои по оборудованию']]},
+ bi:{n:'Утренний отчёт руководителю',s:[['Учётные системы','Ночью отдают данные'],['Хранилище','Собирает и сверяет данные'],['BI','Считает показатели по единой методике'],['Руководитель','Утром открывает дашборд на телефоне'],['Аналитик','Анализирует, а не сводит таблицы']]},
+ rpa:{n:'Поступление из письма поставщика',s:[['Бухгалтер','Пишет агенту: «создай поступление из письма поставщика»'],['PIX Оператор','Читает письмо и вложенный документ'],['PIX Оператор','Находит контрагента и номенклатуру в 1С'],['PIX Оператор','Создаёт документ и показывает на проверку'],['Бухгалтер','Подтверждает, документ проводится']]},
+ rpa2:{n:'Утренняя сводка руководителю',s:[['По расписанию','В 9:00 агент сам берёт данные из 1С'],['PIX Оператор','Считает выручку, дебиторку, остатки'],['PIX Оператор','Присылает сводку в Telegram или на почту'],['Руководитель','Спрашивает в чате: «сравни с прошлым годом»'],['PIX Оператор','Строит график и пишет короткий вывод']]},
+ rpa3:{n:'Сверка с поставщиком роботом',s:[['Робот PIX RPA','По расписанию выгружает акт сверки из 1С'],['Робот PIX RPA','Сравнивает с актом поставщика'],['Робот PIX RPA','Готовит список расхождений'],['Бухгалтер','Разбирает только расхождения'],['Учёт','Сверка закрыта в тот же день']]},
+ itsm:{n:'ИТ-заявка',s:[['Сотрудник','Пишет заявку на портале или в мессенджере'],['1С:Итилиум','Классифицирует и назначает по SLA'],['Инженер','Решает и пишет комментарий'],['Сотрудник','Получает уведомление и оценивает'],['Руководитель ИТ','Видит нагрузку и сроки по группам']]}
+,build:{n:'Затраты по объекту',s:[['Сметчик','Загружает смету объекта'],['Прораб','Создаёт заявку на материалы с объекта'],['Снабжение','Закупает и везёт на объект'],['Бухгалтерия','Принимает КС-2 и КС-3 от подрядчиков'],['Руководитель','Видит план-факт по объекту']]},
+ supp:{n:'Обращение в поддержку 1С',s:[['Пользователь','Пишет обращение на портал или в мессенджер'],['Первая линия','Отвечает в срок по SLA'],['Консультант','Решает или передаёт программисту'],['Программист','Делает доработку и тестирует'],['Руководитель','Видит отчёт по обращениям и часам']]}
+};
+const MATS={
+ acc:['Список текущих систем и как они связаны','Выгрузка 100–200 позиций номенклатуры и контрагентов','2–3 реальных документа: заказ, счёт, УПД','Пример управленческого отчёта, который собирают вручную'],
+ fin:['Структура бюджетов: статьи и ЦФО','Текущая заявка на оплату и маршрут согласования','Пример платёжного календаря или реестра платежей'],
+ prod:['Спецификация одного изделия','Маршрут производства этого изделия','Как сейчас считают себестоимость'],
+ wh:['Схема склада и адресного хранения, если есть','Пример заказа на отгрузку','Объёмы: строк в день и число SKU'],
+ sales:['Этапы воронки продаж','Шаблон КП','Откуда приходят заявки'],
+ hr:['Оргструктура','Виды начислений и графики работы','Какие кадровые документы сейчас подписываются'],
+ doc:['Маршрут согласования договора','2–3 шаблона договоров','Кто подписывает и какой подписью'],
+ nsi:['Выгрузка 300–500 позиций номенклатуры','Действующий классификатор, если есть','Кто сейчас заводит позиции'],
+ trans:['Список ТС и типов перевозок','Пример заявки и путевого листа','Как сейчас считают ГСМ и затраты на рейс'],
+ retail:['Число магазинов и касс','Какая кассовая программа и ОФД','Как сейчас передают продажи в учёт'],
+ hotel:['Какая PMS и её версия','Пример отчёта о выручке за день','Сколько отелей и номеров'],
+ agro:['Структура полей и культур','Список техники','Как сейчас считают затраты на поле'],
+ toir:['Перечень оборудования одного участка','Текущий график ППР','Пример заявки или наряда на ремонт'],
+ bi:['5–10 отчётов, которые сейчас собирают вручную','Список систем-источников','Кто и как часто смотрит отчёты'],
+ rpa:['5–10 обезличенных писем с документами от поставщиков','Типовые вопросы руководства к данным 1С','Какие отчёты собирают регулярно и для кого','Требования ИБ: можно ли облако или только свой контур','Конфигурации 1С и их версии'],
+ itsm:['Список типовых ИТ-заявок','Число пользователей и групп поддержки','Текущие сроки решения заявок']
+,build:['Смета одного объекта','Договор с подрядчиком и пример КС-2','Как сейчас ведут план-факт по объекту'],
+ supp:['Список баз 1С и их версии','Типовые обращения за последний месяц','Какие сроки реакции нужны']
+};
+const NDA='NDA, если данные чувствительные';
+
+/* ===================== состояние ===================== */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let ME=Object.assign({name:'Иван Овчинников',pos:'Менеджер по работе с клиентами',phone:'+7 917 576 76 59',email:'ISOvchinnikov@1cbit.ru',tgUser:'',link:''},store.get('fm_me',{}));
+let LEADS=store.get('fm_leads',[]);
+const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',company:'',industry:[],size:'',role:[],fio:'',pos:'',email:'',phone:'',tg:'',
+  sys:{},ext:[],indSys:'',focus:[],pain:'',timing:'',trigger:[],budget:'',proc:'',matsOff:[],
+  when:'',later:'',meet:[],date:'',time:'',comment:'',pot:'',urg:'',example:false});
+let L=blank(), step=0, view='form', open='', DL=null;
+const CLIENT=()=>location.hash==='#client';
+function norm(x){['industry','role','trigger','meet','ext','focus','matsOff'].forEach(k=>{const v=x[k];x[k]=Array.isArray(v)?v:(v?[v]:[])});Object.values(x.sys||{}).forEach(v=>{['cur','tgt'].forEach(k=>{const z=v[k];v[k]=Array.isArray(z)?z:(z?[z]:[])})});return x}
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2400)}
+const getP=(p)=>p.split('.').reduce((o,k)=>o==null?o:o[k],L);
+function setP(p,v){const ks=p.split('.');let o=L;for(let i=0;i<ks.length-1;i++){o[ks[i]]=o[ks[i]]||{};o=o[ks[i]]}o[ks[ks.length-1]]=v}
+
+/* ===================== логика ===================== */
+function sv(id){const v=L.sys[id]||{};return {cur:arr(v.cur),st:v.st||'',tgt:arr(v.tgt)}}
+function touched(){return CC().filter(c=>sv(c.id).st)}
+function changed(){return CC().filter(c=>['replace','none','add'].includes(sv(c.id).st))}
+const WAS={'Вручную':'ручной работы','Почта и папки':'почты и папок','Почта и телефон':'почты и звонков','В учётной системе':'справочников в учёте','Свои скрипты':'своих скриптов','Другая':'текущей системы','Нет поддержки':''};
+const was=n=>WAS[n]!==undefined?WAS[n]:n;
+function systems(){
+  const m=new Map(),put=(name,kind,c,w)=>{let o=m.get(name);if(!o){o={name,kinds:new Set(),cs:[],was:[],x:c.x};m.set(name,o)}o.kinds.add(kind);if(!o.cs.includes(c.n))o.cs.push(c.n);arr(w).forEach(x=>{if(x!==name&&!o.was.includes(x))o.was.push(x)})};
+  touched().forEach(c=>{const v=sv(c.id);
+    if(v.st==='keep')(v.cur.length?v.cur:['Своя система']).forEach(n=>put(n,'keep',c));
+    else if(v.st==='q')(v.cur.length?v.cur:['Не определено']).forEach(n=>put(n,'q',c));
+    else if(v.st==='add'){v.cur.forEach(n=>put(n,'keep',c));(v.tgt.length?v.tgt:['Подберём']).forEach(n=>put(n,'new',c))}
+    else (v.tgt.length?v.tgt:['Подберём']).forEach(n=>put(n,'new',c,v.cur))});
+  if(L.indSys.trim())put(L.indSys.trim(),'keep',{n:'Отраслевая система',x:'обмен данными'});
+  m.forEach(o=>{o.kind=o.kinds.has('new')?(o.kinds.has('keep')||o.kinds.has('q')?'ext':'new'):o.kinds.has('keep')?'keep':'q';o.was=o.was.filter(w=>!(m.get(w)&&m.get(w).kind!=='new'&&m.get(w).kinds.has('keep')))});
+  return [...m.values()];
+}
+const RANK=['1С:ERP Управление холдингом','1С:ERP','1С:ERP Управление строительной организацией','1С:КА','1С:Управление холдингом','1С:УХ','1С:Бухгалтерия КОРП','1С:УПП','1С:Бухгалтерия','SAP','Другая зарубежная'];
+function core(){
+  const S=systems();
+  for(const r of RANK){const o=S.find(x=>x.name===r&&(x.kind==='new'||x.kind==='ext'));if(o)return o}
+  for(const r of RANK){const o=S.find(x=>x.name===r);if(o)return o}
+  return {name:'Учётная система',kind:'virtual',cs:[],was:[]};
+}
+function focusIds(){const f=L.focus.filter(id=>CM[id]);return f.length?f:changed().map(c=>c.id).slice(0,2)}
+function procKey(){
+  if(L.proc&&P[L.proc])return L.proc;
+  const f=focusIds()[0]; if(!f)return '';
+  if(f==='acc'&&/ERP|КА/.test(core().name))return 'erp';
+  return P[f]?f:'';
+}
+function mats(){
+  const out=[];focusIds().forEach(id=>(MATS[id]||[]).forEach(m=>{if(!out.includes(m))out.push(m)}));
+  out.push(NDA);return out.filter(m=>!L.matsOff.includes(m));
+}
+function agreeText(long){
+  if(L.when==='later'){const w=L.later==='Клиент сам напишет'?'':L.later?L.later.toLowerCase():'';
+    return 'созвонимся и выберем время встречи'+(L.later==='Клиент сам напишет'?', ждём вашего сообщения':w?', напишу вам '+w:'')}
+  return meetText(long);
+}
+function meetText(long){
+  if(!arr(L.meet).length&&!L.date)return '';
+  let s='встреча';
+  if(L.date){const dt=new Date(L.date+'T12:00'),dm=dt.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    if(long){const wd=dt.toLocaleDateString('ru-RU',{weekday:'long'});s+=(wd==='вторник'?' во ':' в ')+wd+', '+dm}else s+=' '+dm}
+  if(L.time)s+=', в '+L.time; if(arr(L.meet).length)s+=', '+arr(L.meet).map(x=>x.toLowerCase()).join(' или ');
+  return s;
+}
+function auto(){
+  const big=['1 000–3 000','больше 3 000'].includes(L.size), mid=['100–500','500–1 000'].includes(L.size);
+  let pot=big?'A':mid?'B':'C'; if(L.budget==='Заложен'&&pot!=='A')pot=pot==='B'?'A':'B'; if(arr(L.role).includes('Собственник или ГД')&&pot==='C')pot='B';
+  const urg={'В ближайшие 3 месяца':'1','3–6 месяцев':'2'}[L.timing]||'3';
+  return {pot:L.pot||pot,urg:L.urg||urg};
+}
+function firstName(){const p=L.fio.trim().split(/\s+/);return p.length>=2&&p.length<=3?p[1]:(p[0]||'')}
+function newNames(){const S=systems().filter(o=>o.kind==='new'||o.kind==='ext').map(o=>o.name).filter(n=>n!=='Подберём');const cr=core();if(S.includes(cr.name)){S.splice(S.indexOf(cr.name),1);S.unshift(cr.name)}return S}
+
+/* ===================== документ (SVG-лист) ===================== */
+const COL={ink:'#112434',mut:'#5b6b78',line:'#d5dde3',mag:'#D2026D',magBg:'#FBE6F0',magInk:'#8a0147',teal:'#1fae9e',tealBg:'#E3F6F3',tealInk:'#0b5a51',grayBg:'#F1F3F5',gray:'#9AA5AE',grayInk:'#34434f'};
+const F='Arial, Helvetica, sans-serif';
+function wrap(t,max){const w=String(t).split(/\s+/),out=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max){if(cur)out.push(cur);cur=x}else cur=(cur+' '+x).trim()});if(cur)out.push(cur);return out}
+const T=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-family="${F}" font-size="${o.s||13}" font-weight="${o.w||400}" fill="${o.c||COL.ink}" text-anchor="${o.a||'start'}">${esc(t)}</text>`;
+const ARR='<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L8 5L1 9" fill="none" stroke="#5b6b78" stroke-width="1.6"/></marker></defs>';
+
+function arch(){
+  const cr=core(), nodes=systems().filter(o=>o.name!==cr.name);
+  const W=680,nw=176,nh=96,gap=14,left=[],right=[],bottom=[];
+  nodes.forEach(n=>{if(left.length<4&&left.length<=right.length)left.push(n);else if(right.length<4)right.push(n);else if(bottom.length<3)bottom.push(n)});
+  const more=nodes.length-left.length-right.length-bottom.length;
+  let g='',y0=20;
+  if(L.ext.length){const txt='Внешние: '+L.ext.join(', ');
+    g+=`<rect x="150" y="20" width="380" height="44" rx="8" fill="${COL.grayBg}" stroke="${COL.gray}"/>`+T(340,47,txt.length>52?txt.slice(0,50)+'…':txt,{a:'middle',c:COL.grayInk,w:600});y0=104}
+  const rows=Math.max(left.length,right.length,1),coreH=Math.max(rows*(nh+gap)-gap,120),cx=W/2-110,cw=220;
+  if(L.ext.length)g+=`<line x1="340" y1="64" x2="340" y2="${y0-2}" stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"/>`;
+  const cNew=cr.kind==='new'||cr.kind==='ext';
+  g+=`<rect x="${cx}" y="${y0}" width="${cw}" height="${coreH}" rx="10" fill="${cNew?COL.magBg:cr.kind==='virtual'?'#fff':COL.tealBg}" stroke="${cNew?COL.mag:cr.kind==='virtual'?COL.gray:COL.teal}" stroke-width="${cNew?2.5:1.4}"/>`;
+  g+=T(340,y0+22,cr.kind==='new'?'ЯДРО · ПРЕДЛАГАЕМ':cr.kind==='ext'?'ЯДРО · У ВАС, РАСШИРЯЕМ':'ЯДРО · У ВАС',{a:'middle',c:cNew?COL.magInk:COL.tealInk,s:11,w:700});
+  let cy=y0+46;wrap(cr.name,22).forEach(l=>{g+=T(340,cy,l,{a:'middle',s:17,w:700,c:cNew?COL.magInk:COL.ink});cy+=21});
+  const cw2=(cr.was||[]).map(was).filter(Boolean);
+  if(cr.kind==='new'&&cw2.length){wrap('вместо '+cw2.join(', '),30).forEach(l=>{g+=T(340,cy,l,{a:'middle',c:COL.magInk,s:12,w:600});cy+=17})}
+  cy+=8;(cr.cs||[]).forEach(m=>{if(cy<y0+coreH-8){g+=T(340,cy,m,{a:'middle',c:COL.grayInk,s:12});cy+=18}});
+  const box=(n,x,y)=>{
+    const k=n.kind,isNew=k==='new',fill=isNew?COL.magBg:k==='q'?'#fff':COL.tealBg,st=isNew?COL.mag:k==='q'?COL.gray:COL.teal,ink=isNew?COL.magInk:k==='q'?COL.grayInk:COL.tealInk;
+    const w2=(n.was||[]).map(was).filter(Boolean);
+    const status=isNew?'предлагаем':k==='ext'?'у вас · дополняем':k==='q'?'у вас · обсудим':'у вас · остаётся';
+    let s=`<rect x="${x}" y="${y}" width="${nw}" height="${nh}" rx="8" fill="${fill}" stroke="${st}" stroke-width="${isNew?1.6:1}" ${k==='q'?'stroke-dasharray="5 4"':''}/>`;
+    let ty=y+21;wrap(n.name,21).slice(0,2).forEach(l=>{s+=T(x+12,ty,l,{c:ink,w:700,s:13});ty+=16});
+    s+=T(x+12,ty+1,status,{c:ink,s:11,w:isNew?700:400});ty+=15;
+    if(isNew&&w2.length){const t='вместо '+w2.join(', ');s+=T(x+12,ty+1,t.length>28?t.slice(0,27)+'…':t,{c:ink,s:11});ty+=15}
+    const xx='↔ '+n.x;return s+T(x+12,ty+1,xx.length>28?xx.slice(0,27)+'…':xx,{c:COL.mut,s:11});
+  };
+  left.forEach((n,i)=>{const y=y0+i*(nh+gap);g+=box(n,20,y)+`<line x1="${20+nw}" y1="${y+nh/2}" x2="${cx-2}" y2="${y+nh/2}" stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"/>`});
+  right.forEach((n,i)=>{const y=y0+i*(nh+gap),x=W-20-nw;g+=box(n,x,y)+`<line x1="${x-2}" y1="${y+nh/2}" x2="${cx+cw+2}" y2="${y+nh/2}" stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"/>`});
+  const by=y0+coreH+50,bx=[20,252,W-20-nw],ent=[300,340,380];
+  bottom.forEach((n,i)=>{const x=bx[i],mid=x+nw/2;g+=box(n,x,by);
+    g+=i===1?`<line x1="340" y1="${by-2}" x2="340" y2="${y0+coreH+2}" stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"/>`
+      :`<path d="M${mid} ${by-2} V${by-24} H${ent[i]} V${y0+coreH+2}" fill="none" stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"/>`});
+  let h=(bottom.length?by+nh:y0+coreH)+24;
+  if(more>0){g+=T(20,h,`И ещё ${more}: см. таблицу ниже`,{c:COL.mut,s:12});h+=20}
+  const lg=[[COL.tealBg,COL.teal,'у вас, остаётся'],[COL.magBg,COL.mag,'предлагаем'],['#fff',COL.gray,'у вас, обсудим'],[COL.grayBg,COL.gray,'внешние системы']];
+  lg.forEach((l,i)=>{const x=20+i*165;g+=`<rect x="${x}" y="${h}" width="14" height="14" rx="3" fill="${l[0]}" stroke="${l[1]}" ${i===2?'stroke-dasharray="3 2"':''}/>`+T(x+22,h+12,l[2],{c:COL.mut,s:12})});
+  return {g,h:h+24};
+}
+function propText(c){const v=sv(c.id);return v.st==='keep'?'оставляем':v.st==='q'?'обсудим на встрече':v.st==='add'?'добавить: '+(v.tgt.join(', ')||'подберём'):(v.tgt.join(', ')||'подберём')}
+function table(x0,y0,W){
+  const cols=[[0,190,26],[200,215,30],[425,W-425,30]];let y=y0,g='';
+  const row=(cells,o)=>{const ls=cells.map((t,i)=>wrap(t,cols[i][2]));const h=Math.max(...ls.map(l=>l.length))*17+14;
+    if(o.head)g+=`<rect x="${x0}" y="${y}" width="${W}" height="${h}" fill="${COL.grayBg}"/>`;
+    ls.forEach((l,i)=>l.forEach((t,j)=>{g+=T(x0+cols[i][0]+10,y+20+j*17,t,{s:12.5,w:o.head||(i===2&&o.nw)?700:400,c:o.head?COL.grayInk:i===2&&o.nw?COL.magInk:COL.ink})}));
+    y+=h;g+=`<line x1="${x0}" y1="${y}" x2="${x0+W}" y2="${y}" stroke="${COL.line}"/>`};
+  row(['Блок','Сейчас у вас','Предлагаем'],{head:true});
+  touched().forEach(c=>{const v=sv(c.id);row([c.n,v.cur.join(', ')||'нет системы',propText(c)],{nw:['replace','none','add'].includes(v.st)})});
+  return {g,h:y-y0};
+}
+function docSVG(){
+  const W=800,pad=60;let y=0,b='';const cuts=[];
+  const sec=(title)=>{cuts.push(y);y+=34;b+=T(pad,y,title,{s:17,w:700});y+=10;b+=`<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="${COL.line}"/>`;y+=14};
+  // шапка
+  b+=`<rect x="0" y="0" width="${W}" height="8" fill="${COL.mag}"/>`;
+  b+=T(pad,52,'первый',{s:22,w:700})+T(pad+83,52,'бит',{s:22,w:700,c:COL.mag})+T(pad+128,52,'Спортивная',{s:13,c:COL.mut});
+  b+=T(W-pad,52,new Date().toLocaleDateString('ru-RU'),{s:13,c:COL.mut,a:'end'});
+  y=98;wrap('Предварительная схема для '+(L.company||'вашей компании'),48).forEach(l=>{b+=T(pad,y,l,{s:24,w:700});y+=30});
+  b+=T(pad,y,'По итогам разговора на '+EVENT_P+'. Уточним на встрече на вашей реальной архитектуре.',{s:13,c:COL.mut});y+=6;
+  // архитектура
+  sec('1. Как это встраивается в ваши системы');
+  if(touched().length){const a=arch();b+=`<g transform="translate(${(W-680)/2} ${y})">${a.g}</g>`;y+=a.h;const t=table(pad,y,W-2*pad);b+=t.g;y+=t.h+8}
+  else{b+=T(pad,y+16,'Системы не отмечены.',{c:COL.mut});y+=30}
+  // процесс
+  const pk=procKey();
+  if(pk){const pr=P[pk];sec('2. Как будет идти процесс: '+pr.n.toLowerCase());
+    pr.s.forEach((st,i)=>{const h=46;b+=`<rect x="${pad}" y="${y}" width="190" height="${h}" rx="8" fill="${COL.ink}"/>`+T(pad+14,y+28,st[0].length>22?st[0].slice(0,21)+'…':st[0],{c:'#fff',w:600,s:13});
+      b+=`<rect x="${pad+200}" y="${y}" width="${W-2*pad-200}" height="${h}" rx="8" fill="#fff" stroke="${COL.line}"/>`+T(pad+216,y+28,st[1],{s:14});
+      y+=h;if(i<pr.s.length-1){b+=`<line x1="${pad+95}" y1="${y+2}" x2="${pad+95}" y2="${y+14}" stroke="#5b6b78" stroke-width="1.2" marker-end="url(#ah)"/>`;y+=16}});
+    y+=4;}
+  // материалы
+  const ms=mats();
+  if(ms.length){sec((pk?'3':'2')+'. Что прислать, чтобы мы собрали сквозной пример на ваших данных');
+    ms.forEach(m=>{b+=`<rect x="${pad}" y="${y+2}" width="14" height="14" rx="3" fill="#fff" stroke="${COL.mag}" stroke-width="1.4"/>`;wrap(m,78).forEach((l,j)=>{b+=T(pad+26,y+14+j*18,l,{s:14});});y+=Math.max(1,wrap(m,78).length)*18+8})}
+  // договорённость
+  const mt=agreeText(true);
+  sec((pk?'4':'3')+'. Договорились');
+  b+=T(pad,y+16,mt?mt.charAt(0).toUpperCase()+mt.slice(1)+'.':'Созвонимся и выберем время встречи.',{s:15,w:600});y+=26;
+  b+=T(pad,y+16,'На встрече покажем сквозной пример на ваших данных и уточним схему.',{s:14,c:COL.mut});y+=34;
+  // подвал
+  cuts.push(y);y+=16;b+=`<rect x="0" y="${y}" width="${W}" height="96" fill="${COL.ink}"/>`;
+  b+=T(pad,y+34,ME.name+', '+ME.pos,{c:'#fff',s:14,w:600})+T(pad,y+56,[ME.phone,ME.email].filter(Boolean).join('   '),{c:'#c9d6df',s:13})+T(pad,y+76,'Схема предварительная и составлена со слов, без обследования.',{c:'#8fa3b1',s:11});
+  y+=96;
+  const inner=`${ARR}<rect width="${W}" height="${y}" fill="#fff"/>${b}`;
+  return {svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${y}" viewBox="0 0 ${W} ${y}">${inner}</svg>`,inner,cuts,w:W,h:y};
+}
+
+/* ===================== тексты ===================== */
+function emailText(){
+  const nm=firstName(), nn=newNames(), pk=procKey(), ms=mats(), mt=agreeText(true);
+  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Во вложении предварительная схема: ${nn.length?'как '+nn.slice(0,4).join(', ')+' встанут в вашу текущую архитектуру':'ваша текущая архитектура и что в ней можно поменять'}${pk?', и пример процесса «'+P[pk].n.toLowerCase()+'»':''}. Схема собрана со слов, на встрече уточним её на вашей реальной архитектуре.\n`;
+  if(ms.length)t+=`\nЧтобы показать сквозной пример на ваших данных, пришлите, пожалуйста, до встречи:\n${ms.map(m=>'— '+m).join('\n')}\n`;
+  t+=mt?`\nДоговорились: ${mt}.\n`:`\nПредлагаю созвониться на этой неделе и выбрать время встречи.\n`;
+  t+=`\n${ME.name}\n${ME.pos}, «Первый Бит», офис Спортивная\n${ME.phone}\n${ME.email}`;
+  return t;
+}
+const emailSubject=()=>'Схема и договорённости после форума 1С:ERP'+(L.company?' — '+L.company:'');
+function summaryText(){
+  const a=auto(), line=(k,v)=>v?`${k}: ${v}\n`:'';
+  let t=`ЛИД · ${EVENT}${L.example?' · ПРИМЕР':''}\nИсточник: ${L.src==='client'?'клиент сам, по QR':'разговор, '+ME.name}\n\n`;
+  t+=line('Кто',[L.fio,L.pos].filter(Boolean).join(', ')+(arr(L.role).length?' ('+arr(L.role).join(', ')+')':''))+line('Компания',[L.company,arr(L.industry).join(', '),L.size&&L.size+' сотр.'].filter(Boolean).join(', '));
+  t+=line('Контакты',[L.phone,L.email,L.tg].filter(Boolean).join(' · '));
+  const ts=touched();
+  if(ts.length){t+='\nСистемы:\n';ts.forEach(c=>{const v=sv(c.id);t+=`— ${c.n}: ${v.cur.join(', ')||'нет'} → ${propText(c)}\n`})}
+  t+=line('Внешние',L.ext.join(', '))+line('Отраслевая система',L.indSys);
+  const f=focusIds();
+  t+='\n'+line('Хотят',f.map(id=>CM[id].n).join(', '))+line('Своими словами',L.pain);
+  t+=line('Триггер',arr(L.trigger).join(', '))+line('Сроки',L.timing)+line('Бюджет',L.budget);
+  const dirs=[...new Set(changed().map(c=>c.dir))];
+  t+=line('Куда думать',dirs.join(', '));
+  t+=line('Запросили материалы',mats().length?mats().length+' пунктов':'');
+  t+=line('Договорённость',L.when==='later'?'встречу не назначили'+(L.later?', вернуться: '+L.later.toLowerCase():''):meetText(true))+line('Комментарий',L.comment);
+  t+=`\nОценка: ${a.pot}${a.urg}`;
+  return t;
+}
+
+/* ===================== выгрузка ===================== */
+const fname=()=>('Схема_'+(L.company||'клиент')).replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_').slice(0,60);
+function printSheet(){
+  saveLead();
+  const d=docSVG(),pa=$('#printArea'),PH=Math.floor(d.w*277/194);
+  const bs=[...new Set([0,...d.cuts.filter(c=>c>0),d.h])].sort((a,b)=>a-b),pages=[];let st=0;
+  for(let i=1;i<bs.length;i++){if(bs[i]-st>PH&&bs[i-1]>st){pages.push([st,bs[i-1]]);st=bs[i-1]}}
+  pages.push([st,d.h]);
+  pa.innerHTML=pages.map(([a,b])=>`<svg class="pg" xmlns="http://www.w3.org/2000/svg" viewBox="0 ${a} ${d.w} ${b-a}">${d.inner}</svg>`).join('');
+  const t=document.title;document.title=fname();
+  setTimeout(()=>{window.print();document.title=t},50);
+}
+
+/* ===================== рендер ===================== */
+const chip=(path,v,lbl,multi)=>{const cur=getP(path);const on=multi?(cur||[]).includes(v):cur===v;return `<button type="button" class="chip" data-p="${path}" data-v="${esc(v)}" data-m="${multi?1:0}" aria-pressed="${on}">${esc(lbl||v)}</button>`};
+const chips=(path,list,multi)=>`<div class="chips">${list.map(v=>Array.isArray(v)?chip(path,v[0],v[1],multi):chip(path,v,null,multi)).join('')}</div>`;
+const inp=(path,label,type='text',ph='')=>`<label class="f">${esc(label)}<input id="i_${path.replace(/\./g,'_')}" data-i="${path}" type="${type}" value="${esc(getP(path)||'')}" placeholder="${esc(ph)}"${type==='tel'?' inputmode="tel"':''}></label>`;
+const STEPS=()=>CLIENT()?['О вас','Системы','Задача','Схема','Получить']:['Кто это','Системы','Что хотят','Схема','Отправка'];
+
+function s0(){
+  const cl=CLIENT();
+  return `<h1>${cl?'Соберём схему ваших систем за 3 минуты':'Кто перед тобой'}</h1>
+  ${cl?'<p class="hint">Отметьте, что у вас стоит и что хотите поменять. В конце получите схему архитектуры, пример процесса и список, что нужно для демонстрации на ваших данных.</p>':`<p class="hint"><button class="link" id="fillEx" type="button">Заполнить примером</button></p>`}
+  <div class="stack" style="margin-top:10px">${inp('company','Компания')}${cl?`<div class="grid2">${inp('fio','Ваше имя')}${inp('pos','Должность')}</div>`:''}</div>
+  <h2>Отрасль</h2>${chips('industry',IND,true)}
+  <h2>Сотрудников</h2>${chips('size',SIZE)}
+  ${cl?'':`<h2>Роль собеседников</h2>${chips('role',ROLE,true)}<div class="grid2" style="margin-top:10px">${inp('fio','ФИО')}${inp('pos','Должность')}</div>`}`;
+}
+function s1(){
+  const ic=indC();
+  const rows=CC().map(c=>{
+    const v=sv(c.id), o=open===c.id, nw=['replace','none','add'].includes(v.st);
+    const sum=v.st?`<span class="${nw?'st-new':v.st==='keep'?'st-keep':''}">${esc(v.cur.join(', ')||'нет')}${nw?' → '+esc(v.tgt.join(', ')||'?'):v.st==='keep'?' · остаётся':' · ?'}</span>`:'<span>не отмечено</span>';
+    return `<div class="ct"><button type="button" data-open="${c.id}" aria-expanded="${o}"><b>${esc(c.n)}${ic.includes(c)?' <small style="color:var(--magenta);font-weight:600">· отрасль</small>':''}</b>${sum}</button>
+    ${o?`<div class="body"><div class="lbl">Сейчас у клиента</div>${chips('sys.'+c.id+'.cur',c.cur,true)}<div class="lbl">Что с этим делать</div>${chips('sys.'+c.id+'.st',ST)}
+      ${nw?`<div class="lbl">${v.st==='add'?'Что добавить':'Что предлагаем'}</div>${chips('sys.'+c.id+'.tgt',c.tgt,true)}`:''}</div>`:''}</div>`}).join('');
+  return `<h1>Что стоит сейчас</h1><p class="hint">Открой только нужные блоки. В каждом можно отметить несколько систем.</p>${rows}
+  <h2>Внешние системы</h2>${chips('ext',EXT,true)}
+  <div style="margin-top:12px">${inp('indSys','Отраслевая система, если есть','text','Например, PMS отеля, LIMS, MES')}</div>`;
+}
+function s2(){
+  const tc=touched();
+  return `<h1>${CLIENT()?'Что хотите поменять в первую очередь':'Что хотят'}</h1>
+  ${tc.length?`<p class="hint">Отметь 1–2 блока: по ним будет пример процесса и список материалов.</p>${chips('focus',tc.map(c=>[c.id,c.n]),true)}`:'<p class="hint">Сначала отметь системы на прошлом шаге.</p>'}
+  <div style="margin-top:12px"><label class="f">${CLIENT()?'Что болит, своими словами':'Что болит, их словами'}<textarea id="i_pain" data-i="pain">${esc(L.pain)}</textarea></label></div>
+  ${CLIENT()?'':`<h2>От чего зависит решение</h2>${chips('trigger',TRIG,true)}<h2>Когда хотят начать</h2>${chips('timing',TIMING)}<h2>Бюджет</h2>${chips('budget',BUDG)}`}`;
+}
+function s3(){
+  const d=docSVG(), pk=procKey(), all=[];
+  focusIds().forEach(id=>(MATS[id]||[]).forEach(m=>{if(!all.includes(m))all.push(m)}));all.push(NDA);
+  const procOpts=[...new Set([...focusIds(),...changed().map(c=>c.id)].flatMap(id=>id==='acc'&&/ERP|КА/.test(core().name)?['erp']:id==='rpa'?['rpa','rpa2','rpa3']:[id]))].filter(k=>P[k]);
+  return `<h1>${CLIENT()?'Ваша схема':'Схема для клиента'}</h1>
+  <p class="hint">${CLIENT()?'Предварительная, со слов. Уточним на встрече.':'Можно показать клиенту прямо с экрана.'}</p>
+  <div class="sheet">${d.svg.replace('<svg ','<svg role="img" aria-label="Схема для клиента" ')}</div>
+  ${procOpts.length>1?`<h2>Какой процесс показать</h2>${chips('proc',procOpts.map(k=>[k,P[k].n]))}`:''}
+  ${all.length>1&&!CLIENT()?`<h2>Материалы для сквозного примера</h2><div class="mats">${all.map(m=>`<label><input type="checkbox" data-mat="${esc(m)}" ${L.matsOff.includes(m)?'':'checked'}><span>${esc(m)}</span></label>`).join('')}</div>`:''}`;
+}
+function s4(){
+  if(CLIENT())return s4client();
+  saveLead();
+  const a=auto(), ok=!!L.email;
+  return `<h1>Договорённость и отправка</h1>
+  <div class="stack">${inp('email','Email клиента','email')}<div class="grid2">${inp('phone','Телефон','tel','+7')}${inp('tg','Telegram','text','@ник')}</div></div>
+  <h2>Встреча</h2>${chips('when',[['date','Назначили'],['later','Договоримся позже']])}
+  ${L.when==='later'?`<h2>Когда вернуться</h2>${chips('later',LATER)}`:`<div style="margin-top:10px">${chips('meet',MEETF,true)}</div><div class="grid2" style="margin-top:10px">${inp('date','Дата','date')}${inp('time','Время','time')}</div>`}
+  <h2>Оценка</h2><div class="chips">${['A','B','C'].map(v=>chip('pot',v)).join('')}<span style="width:12px"></span>${['1','2','3'].map(v=>chip('urg',v)).join('')}</div>
+  <p class="hint" style="margin-top:4px">Сейчас: ${a.pot}${a.urg}. Посчитано из масштаба, роли, бюджета и сроков, можно поправить.</p>
+  <h2>Комментарий для себя</h2><textarea id="i_comment" data-i="comment">${esc(L.comment)}</textarea>
+  <h2>Отправить</h2>
+  <div class="stack">
+    <button class="btn big" type="button" id="pdfBtn"><span class="n">1</span><span>Сохранить схему в PDF<small>Откроется печать, выберите «Сохранить как PDF»</small></span></button>
+    <a class="btn big" id="mailBtn" href="mailto:${esc(L.email)}?subject=${encodeURIComponent(emailSubject())}&body=${encodeURIComponent(emailText())}"><span class="n">2</span><span>Письмо клиенту${ok?'':' (впиши email)'}<small>Откроет почту с готовым текстом, приложи PDF</small></span></a>
+    <a class="btn big" href="https://t.me/share/url?url=${encodeURIComponent(summaryText())}" target="_blank" rel="noopener"><span class="n">3</span><span>Выжимка в Telegram<small>Или скопируй текст ниже</small></span></a>
+  </div>
+  <details open><summary>Текст письма</summary><pre class="msg" id="emailPre">${esc('Тема: '+emailSubject()+'\n\n'+emailText())}</pre><button class="btn sm" type="button" data-copy="emailPre">Скопировать</button></details>
+  <details open><summary>Выжимка для офиса</summary><pre class="msg" id="sumPre">${esc(summaryText())}</pre><button class="btn sm" type="button" data-copy="sumPre">Скопировать</button></details>`;
+}
+function s4client(){
+  L.src='client';
+  const digits=ME.phone.replace(/\D/g,'').replace(/^8(\d{10})$/,'7$1');
+  return `<h1>Получить схему</h1>
+  <div class="stack">${inp('email','Email','email')}<div class="grid2">${inp('phone','Телефон','tel','+7')}${inp('tg','Telegram','text','@ник')}</div></div>
+  <h2>Встретимся, чтобы посмотреть пример на ваших данных?</h2>${chips('when',[['date','Да, выберу время'],['later','Позже, свяжитесь со мной']])}
+  ${L.when==='date'?`<div style="margin-top:10px">${chips('meet',MEETF,true)}</div><div class="grid2" style="margin-top:10px">${inp('date','Дата','date')}${inp('time','Время','time')}</div>`:''}
+  <h2>Дальше</h2>
+  <div class="stack">
+    <button class="btn big" type="button" id="pdfBtn"><span class="n">1</span><span>Сохранить схему в PDF<small>Откроется печать, выберите «Сохранить как PDF»</small></span></button>
+    <a class="btn big" href="https://wa.me/${digits}?text=${encodeURIComponent(summaryText())}" target="_blank" rel="noopener"><span class="n">2</span><span>Отправить менеджеру в WhatsApp<small>${esc(ME.name)}, ${esc(ME.phone)}</small></span></a>
+    ${ME.tgUser?`<a class="btn big" href="https://t.me/${esc(ME.tgUser.replace('@',''))}" target="_blank" rel="noopener"><span class="n">3</span><span>Или написать в Telegram<small>Сначала скопируйте текст ниже</small></span></a>`:''}
+  </div>
+  <details><summary>Текст для менеджера</summary><pre class="msg" id="sumPre">${esc(summaryText())}</pre><button class="btn sm" type="button" data-copy="sumPre">Скопировать</button></details>
+  <p class="hint" style="margin-top:12px">Пока вы не отправите, данные остаются только в вашем браузере.</p>`;
+}
+function leadsHTML(){
+  return `<h1>Лиды за форум</h1><p class="hint">Хранятся только на этом устройстве.</p>
+  ${LEADS.length?`<div style="margin:8px 0"><button class="btn sm" type="button" id="copyAll">Скопировать все сводки</button></div>`:''}
+  ${LEADS.slice().reverse().map(x=>`<div class="lead"><div><b>${esc(x.company||x.fio||'Без названия')}${x.example?' · пример':''}</b><small>${esc(x.fio)} · ${new Date(x.created).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></div>
+   <div style="display:flex;gap:6px;flex-shrink:0"><button class="btn sm" type="button" data-openlead="${x.id}">Открыть</button><button class="btn sm" type="button" data-del="${x.id}" aria-label="Удалить">✕</button></div></div>`).join('')}
+  <pre class="msg" id="allPre" hidden></pre>`;
+}
+function setHTML(){
+  return `<h1>Настройки</h1><p class="hint">Подпись в письме и PDF. Каждый коллега заполняет своё на своём устройстве.</p>
+  <div class="stack" style="margin-top:10px">${[['name','Имя и фамилия'],['pos','Должность'],['phone','Телефон (сюда клиенты пишут в WhatsApp)'],['email','Email'],['tgUser','Telegram-ник, необязательно'],['link','Ссылка на эту страницу (если пусто, берётся текущая)']].map(([k,l])=>`<label class="f">${l}<input id="me_${k}" data-me="${k}" value="${esc(ME[k])}"></label>`).join('')}</div>
+  <h2>QR для клиентов</h2><p class="hint">Ведёт на короткую форму для самостоятельного заполнения. Ведёт на эту же страницу с меткой #client.</p>
+  <div id="qr"></div><p class="hint" id="qrUrl"></p>`;
+}
+function render(keep){
+  const y=window.scrollY, f=view==='form', S=STEPS();
+  $('#nav').innerHTML=CLIENT()?'':`<button id="navNew" type="button">Новый</button><button id="navLeads" type="button">Лиды${LEADS.length?' ('+LEADS.length+')':''}</button><button id="navSet" type="button" aria-label="Настройки">⚙</button>`;
+  $('#stepsBar').innerHTML=f?S.map((_,i)=>`<span class="${i<=step?'on':''}"></span>`).join(''):'';
+  $('#stepName').textContent=f?`${step+1}/5 · ${S[step]}`:'';
+  $('#app').innerHTML=view==='leads'?leadsHTML():view==='set'?setHTML():[s0,s1,s2,s3,s4][step]();
+  const nl=['Дальше','Дальше','Показать схему',CLIENT()?'Получить схему':'К отправке'][step];
+  $('#barIn').innerHTML=!f?`<button class="btn primary" type="button" id="toForm">К анкете</button>`
+    :step<4?`${step?'<button class="btn" type="button" id="prev">Назад</button>':''}<button class="btn primary" type="button" id="next">${nl}</button>`
+    :`<button class="btn" type="button" id="prev">Назад</button>${CLIENT()?'':'<button class="btn primary" type="button" id="newLead">Следующий</button>'}`;
+  if(view==='set')drawQR();
+  window.scrollTo(0,keep?y:0);
+}
+function drawQR(){const el=$('#qr');if(!el)return;const base=ME.link||(/^https?:/.test(location.href)?location.href:'');const url=base.split('#')[0]+'#client';if(!base){el.textContent='Укажи ссылку, по которой открыт этот файл';$('#qrUrl').textContent='';return}$('#qrUrl').textContent=url;el.innerHTML='';try{new QRCode(el,{text:url,width:200,height:200})}catch(e){el.textContent='QR не загрузился'}}
+function save(){store.set('fm_draft',{L,step})}
+function saveLead(){if(CLIENT())return;const i=LEADS.findIndex(x=>x.id===L.id),c=JSON.parse(JSON.stringify(L));i>=0?LEADS[i]=c:LEADS.push(c);store.set('fm_leads',LEADS)}
+function copy(el){const t=el.textContent,fb=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Текст выделен, скопируй вручную')};try{navigator.clipboard.writeText(t).then(()=>toast('Скопировано'),fb)}catch(e){fb()}}
+function refreshLinks(){ // ссылки отправки зависят от полей — обновляем без перерисовки
+  const m=$('#mailBtn');if(m)m.href=`mailto:${L.email}?subject=${encodeURIComponent(emailSubject())}&body=${encodeURIComponent(emailText())}`;
+  const e=$('#emailPre');if(e)e.textContent='Тема: '+emailSubject()+'\n\n'+emailText();
+  const s=$('#sumPre');if(s)s.textContent=summaryText();
+  document.querySelectorAll('a[href^="https://t.me/share"]').forEach(a=>a.href='https://t.me/share/url?url='+encodeURIComponent(summaryText()));
+  document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>{const d=ME.phone.replace(/\D/g,'').replace(/^8(\d{10})$/,'7$1');a.href=`https://wa.me/${d}?text=${encodeURIComponent(summaryText())}`});
+}
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-p]');
+  if(c){const p=c.dataset.p,v=c.dataset.v;
+    if(c.dataset.m==='1'){const a=getP(p)||[];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v);setP(p,a)}
+    else setP(p,getP(p)===v?'':v);
+    if(p==='focus')L.proc='';
+    save();saveLead();render(true);return}
+  const o=e.target.closest('[data-open]');if(o){open=open===o.dataset.open?'':o.dataset.open;render(true);return}
+  const b=e.target.closest('button');if(!b)return;const id=b.id;
+  if(id==='next'){if(step===0&&!L.company.trim()&&!L.fio.trim()){toast('Впиши хотя бы компанию');return}step++;open='';save();render()}
+  else if(id==='prev'){step--;render()}
+  else if(id==='navNew'||id==='newLead'){L=blank();step=0;view='form';open='';save();render()}
+  else if(id==='navLeads'){view='leads';render()}
+  else if(id==='navSet'){view='set';render()}
+  else if(id==='toForm'){view='form';render()}
+  else if(id==='pdfBtn'){printSheet()}
+  else if(b.dataset.copy)copy($('#'+b.dataset.copy));
+  else if(id==='copyAll'){const pre=$('#allPre'),cur=L;pre.textContent=LEADS.filter(x=>!x.example).map(x=>{L=norm(Object.assign(blank(),x));return summaryText()}).join('\n\n———\n\n')||'Пока только примеры.';L=cur;pre.hidden=false;copy(pre)}
+  else if(b.dataset.openlead){L=norm(Object.assign(blank(),JSON.parse(JSON.stringify(LEADS.find(x=>String(x.id)===b.dataset.openlead)))));view='form';step=3;render()}
+  else if(b.dataset.del){if(b.dataset.sure){LEADS=LEADS.filter(x=>String(x.id)!==b.dataset.del);store.set('fm_leads',LEADS);render(true)}else{b.dataset.sure='1';b.textContent='Удалить?'}}
+  else if(id==='fillEx'){L=Object.assign(blank(),{example:true,company:'Пример: завод упаковки',industry:['Производство'],size:'500–1 000',role:['Финансы','ИТ'],fio:'Петрова Анна Сергеевна',pos:'Финансовый директор',
+    sys:{acc:{cur:['1С:УПП'],st:'replace',tgt:['1С:ERP']},prod:{cur:['1С:УПП'],st:'replace',tgt:['1С:ERP']},fin:{cur:['Excel'],st:'replace',tgt:['Бит.Финанс']},sales:{cur:['Битрикс24'],st:'keep'},hr:{cur:['1С:ЗУП'],st:'add',tgt:['1С:Кадровый ЭДО']},rpa:{cur:['Вручную'],st:'none',tgt:['ИИ-распознавание документов']},bi:{cur:['Excel','Power BI'],st:'q'},wh:{cur:['1С:УТ'],st:'keep'}},
+    ext:['Банк','ЭДО','Честный знак'],focus:['acc','fin'],pain:'Себестоимость считаем раз в месяц в Excel, УПП уже не тянет, бюджеты собираем две недели',
+    trigger:['Конец поддержки системы','Бюджет на 2027'],timing:'3–6 месяцев',budget:'Будут закладывать',when:'date',meet:['Онлайн'],date:'2026-12-03',time:'11:00',email:'example@example.com'});step=3;save();render()}
+});
+document.addEventListener('change',e=>{
+  const m=e.target.dataset.mat;if(m!=null){const i=L.matsOff.indexOf(m);e.target.checked?(i>=0&&L.matsOff.splice(i,1)):L.matsOff.push(m);save();render(true)}
+  if(e.target.dataset.i&&(step===3))render(true);
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.i){setP(t.dataset.i,t.value);save();saveLead();refreshLinks()}
+  if(t.dataset.me){ME[t.dataset.me]=t.value;store.set('fm_me',ME);if(t.dataset.me==='link')drawQR()}
+});
+window.addEventListener('hashchange',()=>{L=blank();step=0;view='form';render()});
+const dr=store.get('fm_draft',null);
+if(!CLIENT()&&dr&&dr.L&&dr.L.id){L=norm(Object.assign(blank(),dr.L));step=dr.step||0}
+render();
+</script>
+
+</body></html>
