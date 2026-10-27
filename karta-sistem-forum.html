@@ -102,6 +102,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <div id="printArea"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="mermaid.min.js"></script>
 <script>
 /* ===================== СПРАВОЧНИКИ (черновик, проверить с архитекторами) ===================== */
 const EVENT='форум 1С:ERP, 26 ноября 2026', EVENT_P='форуме 1С:ERP 26 ноября';
@@ -271,7 +272,7 @@ function newNames(){const S=systems().filter(o=>o.kind==='new'||o.kind==='ext').
 /* ===================== документ (SVG-лист) ===================== */
 const COL={ink:'#112434',mut:'#5b6b78',line:'#d5dde3',mag:'#D2026D',magBg:'#FBE6F0',magInk:'#8a0147',teal:'#1fae9e',tealBg:'#E3F6F3',tealInk:'#0b5a51',grayBg:'#F1F3F5',gray:'#9AA5AE',grayInk:'#34434f'};
 const F='Arial, Helvetica, sans-serif';
-function wrap(t,max){if(String(t).includes('\n'))return String(t).split('\n').flatMap((p,i)=>wrap(p,max-2).map((l,j)=>i?(j?'   '+l:'· '+l):l));const w=String(t).split(/\s+/),out=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max){if(cur)out.push(cur);cur=x}else cur=(cur+' '+x).trim()});if(cur)out.push(cur);return out}
+function wrap(t,max){if(String(t).includes('\n'))return String(t).split('\n').flatMap((p,i)=>wrap(p,max-2).map((l,j)=>i?(j?'   '+l:(l.startsWith('⇄')?l:'· '+l)):l));const w=String(t).split(/\s+/),out=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max){if(cur)out.push(cur);cur=x}else cur=(cur+' '+x).trim()});if(cur)out.push(cur);return out}
 const T=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-family="${F}" font-size="${o.s||13}" font-weight="${o.w||400}" fill="${o.c||COL.ink}" text-anchor="${o.a||'start'}">${esc(t)}</text>`;
 const ARR='<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L8 5L1 9" fill="none" stroke="#5b6b78" stroke-width="1.6"/></marker></defs>';
 
@@ -321,22 +322,129 @@ const FLOW={ // in: в ядро, out: из ядра
 const EXTF={'Банк':['Платёжные поручения','Выписки'],'ЭДО':['Исходящие УПД и счета','Входящие документы поставщиков'],'Честный знак':['Коды для вывода из оборота','Статусы кодов'],'ЕГАИС':['Акты и движения алкоголя','Остатки и подтверждения'],'ФНС':['Отчётность','Требования и квитанции'],'Сайт':['Цены и остатки','Заказы'],'Маркетплейсы':['Цены и остатки','Заказы и продажи']};
 const uniq=a=>[...new Set(a)];
 const SYSP={ // уточнения для конкретных продуктов
- '1С:Кадровый ЭДО':{p:['Подписание кадровых документов','Заявления и согласия сотрудников'],in:['Подписанные документы и статусы'],out:['Кадровые документы на подпись','Сотрудники']},
- 'ИИ-распознавание документов':{p:['Распознавание входящих счетов, актов, УПД'],in:['Документы поступления на проверку'],out:['Контрагенты и номенклатура для сопоставления']},
- 'PIX Оператор: ИИ-агент':{p:['Задачи сотрудников обычным текстом','Ввод документов по письмам','Сводки по расписанию'],in:['Созданные документы, после подтверждения человека'],out:['Данные регистров и отчётов, в пределах прав пользователя']},
- 'PIX RPA: роботы':{p:['Сверки','Перенос данных между системами','Выгрузки по расписанию'],in:['Документы и сверки'],out:['Данные для сверок']},
- 'Мобильный обходчик':{p:['Обходы и осмотры с телефона','Фото дефектов'],in:['Дефекты и показания'],out:['Маршруты обходов']},
- 'Мониторинг GPS и ГЛОНАСС':{p:['Трекинг ТС','Пробег и расход топлива'],in:['Пробег, стоянки, расход топлива'],out:['Список ТС и водителей']},
- 'Мобильное приложение водителя':{p:['Путевой лист в телефоне','Отметки по точкам маршрута'],in:['Статусы рейса и отметки'],out:['Рейсы и путевые листы']},
- 'Интеграция CRM с 1С':{p:['Синхронизация CRM и учёта'],in:['Заказы и контрагенты'],out:['Статусы, оплаты, остатки']},
- 'Сайт на 1С-Битрикс':{p:['Каталог и заказы на сайте'],in:['Заказы с сайта'],out:['Каталог, цены, остатки']},
- 'HR-портал на Битрикс24':{p:['Заявки сотрудников','Новости и база знаний'],in:['Заявления сотрудников'],out:['Оргструктура и сотрудники']},
- '1С:MES':{p:['Сменные задания','Учёт выпуска в цехе'],in:['Выпуск и простои линий'],out:['Производственные задания']},
- 'Хранилище данных (DWH)':{p:['Сбор данных из всех систем','Единая методика показателей'],in:[],out:['Данные учёта для хранилища']},
- '1С:Аналитика':{p:['Отчёты и дашборды поверх 1С'],in:[],out:['Данные учёта']}
+ '1С:Кадровый ЭДО':{v:'Кадровые документы без бумаги',p:['Подписание кадровых документов','Заявления и согласия сотрудников'],in:['Подписанные документы и статусы'],out:['Кадровые документы на подпись','Сотрудники']},
+ 'ИИ-распознавание документов':{v:'Документы поставщиков без ручного ввода',p:['Распознавание входящих счетов, актов, УПД'],in:['Документы поступления на проверку'],out:['Контрагенты и номенклатура для сопоставления']},
+ 'PIX Оператор: ИИ-агент':{v:'Задачи в 1С обычным текстом, без рутины',p:['Задачи сотрудников обычным текстом','Ввод документов по письмам','Сводки по расписанию'],in:['Созданные документы, после подтверждения человека'],out:['Данные регистров и отчётов, в пределах прав пользователя']},
+ 'PIX RPA: роботы':{v:'Роботы берут однотипные операции',p:['Сверки','Перенос данных между системами','Выгрузки по расписанию'],in:['Документы и сверки'],out:['Данные для сверок']},
+ 'Мобильный обходчик':{v:'Дефекты фиксируются на месте, с фото',p:['Обходы и осмотры с телефона','Фото дефектов'],in:['Дефекты и показания'],out:['Маршруты обходов']},
+ 'Мониторинг GPS и ГЛОНАСС':{v:'Реальный пробег и расход топлива',p:['Трекинг ТС','Пробег и расход топлива'],in:['Пробег, стоянки, расход топлива'],out:['Список ТС и водителей']},
+ 'Мобильное приложение водителя':{v:'Путевые листы без бумаги',p:['Путевой лист в телефоне','Отметки по точкам маршрута'],in:['Статусы рейса и отметки'],out:['Рейсы и путевые листы']},
+ 'Интеграция CRM с 1С':{v:'Менеджеры видят оплаты и отгрузки',p:['Синхронизация CRM и учёта'],in:['Заказы и контрагенты'],out:['Статусы, оплаты, остатки']},
+ 'Сайт на 1С-Битрикс':{v:'Заказы с сайта сразу в учёте',p:['Каталог и заказы на сайте'],in:['Заказы с сайта'],out:['Каталог, цены, остатки']},
+ 'HR-портал на Битрикс24':{v:'Заявления сотрудников без бумаги',p:['Заявки сотрудников','Новости и база знаний'],in:['Заявления сотрудников'],out:['Оргструктура и сотрудники']},
+ '1С:MES':{v:'Выпуск и простои линий онлайн',p:['Сменные задания','Учёт выпуска в цехе'],in:['Выпуск и простои линий'],out:['Производственные задания']},
+ 'Хранилище данных (DWH)':{v:'Единые цифры из всех систем',p:['Сбор данных из всех систем','Единая методика показателей'],in:[],out:['Данные учёта для хранилища']},
+ '1С:Аналитика':{v:'Отчёты поверх 1С без выгрузок',p:['Отчёты и дашборды поверх 1С'],in:[],out:['Данные учёта']}
 };
 const procOf=o=>SYSP[o.name]?SYSP[o.name].p:uniq((o.cids||[]).flatMap(id=>PROC[id]||[]));
 const flowOf=o=>SYSP[o.name]?{in:SYSP[o.name].in,out:SYSP[o.name].out}:({in:uniq((o.cids||[]).flatMap(id=>(FLOW[id]||{}).in||[])),out:uniq((o.cids||[]).flatMap(id=>(FLOW[id]||{}).out||[]))});
+
+const VAL={acc:'Учёт и отчётность без ручного свода',fin:'Бюджет и платежи под контролем, а не в Excel',prod:'Себестоимость и план производства без задержек',wh:'Меньше ошибок, быстрее отгрузка',sales:'Заявки не теряются, продажи видны руководителю',hr:'Зарплата и кадры без ручных корректировок',doc:'Договоры согласуются за дни, а не недели',nsi:'Один справочник без дублей для всех систем',toir:'Меньше аварийных простоев и затрат на ремонт',bi:'Руководитель видит цифры каждое утро',rpa:'Рутину делает ИИ-агент, люди проверяют',itsm:'ИТ-заявки со сроками и видимой нагрузкой',supp:'Предсказуемая поддержка 1С по SLA',trans:'Себестоимость каждого рейса и контроль топлива',build:'Перерасход по объекту виден вовремя',retail:'Остатки и выручка магазинов онлайн',hotel:'Выручка отелей в учёте без ручного ввода',agro:'Себестоимость по полю и культуре',ind:''};
+const valOf=o=>SYSP[o.name]&&SYSP[o.name].v?SYSP[o.name].v:((o.cids||[]).map(id=>VAL[id]).find(Boolean)||'');
+const REL=[
+ ['fin','acc',['Заявки на оплату'],['Факт платежей и проводки']],
+ ['wh','acc',['Факт приёмки и отгрузки'],['Заказы на отгрузку и поступления']],
+ ['wh','prod',['Материалы в производство'],['Выпуск на склад']],
+ ['sales','acc',['Заказы клиентов, новые контрагенты'],['Статусы отгрузки, оплаты, цены']],
+ ['sales','wh',['Резервы под заказы'],['Остатки']],
+ ['hr','acc',['Проводки по зарплате'],['Подразделения и ЦФО']],
+ ['hr','fin',['ФОТ: план и факт по ЦФО'],[]],
+ ['doc','acc',['Подписанные договоры и статусы'],['Контрагенты']],
+ ['doc','fin',['Договоры для заявок на оплату'],[]],
+ ['nsi','acc',['Эталонная номенклатура и контрагенты'],['Заявки на новые позиции']],
+ ['nsi','wh',['Эталонная номенклатура'],[]],
+ ['nsi','toir',['Эталонный справочник ЗИП'],[]],
+ ['nsi','sales',['Контрагенты'],[]],
+ ['toir','acc',['Ввод в эксплуатацию и списание ОС','Затраты на ремонты по объектам'],['Основные средства и их стоимость']],
+ ['toir','wh',['Заявки на ЗИП, списание по нарядам'],['Остатки ЗИП']],
+ ['toir','hr',['Выработка ремонтного персонала'],['Сотрудники и квалификации']],
+ ['toir','fin',['План затрат на ремонты'],['Лимиты бюджета на ремонты']],
+ ['toir','prod',['План остановок на ремонт'],['Наработка и простои оборудования']],
+ ['toir','doc',[],['Договоры с подрядчиками на ремонт']],
+ ['bi','acc',[],['Данные учёта']],['bi','fin',[],['Бюджеты и факт']],['bi','sales',[],['Воронка и продажи']],['bi','toir',[],['Простои и затраты на ремонты']],['bi','prod',[],['Выпуск и себестоимость']],['bi','wh',[],['Остатки и движения']],
+ ['rpa','acc',['Созданные документы, после подтверждения'],['Данные в пределах прав пользователя']],
+ ['itsm','hr',[],['Сотрудники и оргструктура']],
+ ['trans','acc',['Затраты на рейсы, выручка по перевозкам'],['Договоры и контрагенты']],
+ ['trans','hr',['Выработка водителей'],['Водители']],
+ ['trans','wh',[],['Отгрузки на доставку']],
+ ['trans','toir',['Пробег для графика ТО'],['ТС в ремонте']],
+ ['build','acc',['Затраты по объектам, КС-2 и КС-3'],['Платежи']],
+ ['build','wh',['Заявки на материалы'],['Остатки материалов']],
+ ['build','doc',[],['Договоры с подрядчиками']],
+ ['retail','acc',['Продажи и чеки'],['Номенклатура и цены']],
+ ['retail','wh',['Заказы на пополнение'],['Перемещения на магазины']],
+ ['hotel','acc',['Выручка и оплаты гостей'],['Справочник услуг и цен']],
+ ['agro','acc',['Затраты по полям, урожай'],['Номенклатура и склады']],
+ ['agro','wh',['Списание семян, удобрений, топлива'],['Остатки']],
+ ['ind','acc',['Операционные данные'],['Справочники']]
+];
+function graph(){
+  let S=systems(); const c0=core(); let cr=S.find(o=>o.name===c0.name);
+  if(!cr){cr=c0;S=[cr,...S]}
+  S=S.filter(o=>!(o.cids||[]).every(id=>id==='supp'));
+  // главная система каждого блока: при «дополняем» — текущая, иначе первая
+  const prim={};
+  [...touched(),...(L.indSys.trim()?[{id:'ind'}]:[])].forEach(c=>{const v=c.id==='ind'?{st:'keep',cur:[L.indSys.trim()]}:sv(c.id);
+    const nm=v.st==='add'?v.cur[0]:(v.st==='keep'||v.st==='q')?(v.cur[0]||'Своя система'):(v.tgt[0]||'Подберём');
+    const o=S.find(x=>x.name===nm);if(o)prim[c.id]=o});
+  if(cr&&(cr.cids||[]).length)cr.cids.forEach(id=>{if(!prim[id])prim[id]=cr});
+  const E=new Map(),key=(a,b)=>a.name+'§'+b.name;
+  const add=(a,b,ab,ba)=>{if(!a||!b||a===b)return;let k=key(a,b),r=E.get(k);if(!r&&E.get(key(b,a))){[a,b,ab,ba]=[b,a,ba,ab];k=key(a,b);r=E.get(k)}
+    if(!r){r={a,b,ab:[],ba:[]};E.set(k,r)}ab.forEach(x=>{if(!r.ab.includes(x))r.ab.push(x)});ba.forEach(x=>{if(!r.ba.includes(x))r.ba.push(x)})};
+  REL.forEach(([x,y,ab,ba])=>add(prim[x],prim[y],ab,ba));
+  // дополнительные системы блока привязываем к главной
+  S.forEach(o=>{if(o===cr)return;const pid=(o.cids||[]).find(id=>prim[id]&&prim[id]!==o);if(pid&&!Object.values(prim).includes(o)){const f=flowOf(o);add(o,prim[pid],f.in,f.out)}});
+  // кто остался без связей — к мастер-системе
+  S.forEach(o=>{if(o===cr)return;const linked=[...E.values()].some(r=>r.a===o||r.b===o);if(!linked){const f=flowOf(o);add(o,cr,f.in,f.out)}});
+  const edges=[...E.values()].filter(r=>r.ab.length||r.ba.length);
+  return {cr,nodes:S,edges};
+}
+let MM={key:'',svg:''},MMpending='',MMn=0,MMinit=false;
+function mmText(G){
+  const id=new Map();G.nodes.forEach((o,i)=>id.set(o,'n'+i));
+  const q=t=>String(t).replace(/["<>]/g,'').replace(/#/g,'№');
+  let t='flowchart TB\n';
+  G.nodes.forEach(o=>{const k=o===G.cr?'core':o.kind;const st=o===G.cr?(o.kind==='new'?'МАСТЕР-СИСТЕМА · ПРЕДЛАГАЕМ':'МАСТЕР-СИСТЕМА · У ВАС'):o.kind==='new'?'предлагаем':o.kind==='ext'?'у вас · дополняем':o.kind==='q'?'у вас · обсудим':'у вас · остаётся';
+    const w=(o.was||[]).map(was).filter(Boolean);const v=o.kind==='new'||o===G.cr&&o.kind==='new'?valOf(o):'';
+    const lines=[q(o.name).toUpperCase(),q(st)];if(o.kind==='new'&&w.length)lines.push('вместо '+q(w.join(', ')));if(v)lines.push('→ '+q(v));
+    t+=`  ${id.get(o)}["${lines.join('<br/>')}"]:::${k==='core'?(o.kind==='new'?'corenew':'corekeep'):k}\n`});
+  if(L.ext.length){t+=`  ext["Внешние: ${q(L.ext.join(', '))}"]:::extsys\n  ext <-->|В| ${id.get(G.cr)}\n`}
+  G.edges.forEach((r,i)=>{const both=r.ab.length&&r.ba.length;t+=both?`  ${id.get(r.a)} <-->|${i+1}| ${id.get(r.b)}\n`:r.ab.length?`  ${id.get(r.a)} -->|${i+1}| ${id.get(r.b)}\n`:`  ${id.get(r.b)} -->|${i+1}| ${id.get(r.a)}\n`});
+  t+='  classDef new fill:#FBE6F0,stroke:#D2026D,stroke-width:2px,color:#8a0147\n  classDef keep fill:#E3F6F3,stroke:#1fae9e,color:#0b5a51\n  classDef ext fill:#E3F6F3,stroke:#1fae9e,color:#0b5a51\n  classDef q fill:#ffffff,stroke:#9AA5AE,stroke-dasharray:5 4,color:#34434f\n  classDef extsys fill:#F1F3F5,stroke:#9AA5AE,color:#34434f\n  classDef corenew fill:#FBE6F0,stroke:#D2026D,stroke-width:4px,color:#8a0147\n  classDef corekeep fill:#E3F6F3,stroke:#1fae9e,stroke-width:4px,color:#0b5a51\n';
+  return t;
+}
+function mmGet(text){
+  if(MM.key===text)return MM;
+  if(!window.mermaid)return null;
+  if(!MMinit){try{mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'Arial, Helvetica, sans-serif',fontSize:'13px',lineColor:'#5b6b78',primaryTextColor:'#112434',edgeLabelBackground:'#ffffff'},flowchart:{htmlLabels:false,curve:'basis',nodeSpacing:28,rankSpacing:46,padding:10,wrappingWidth:210}})}catch(e){}MMinit=true}
+  if(MMpending===text)return null; MMpending=text;
+  mermaid.render('mmg'+(++MMn),text).then(r=>{const m=r.svg.match(/viewBox="([\d.\-]+) ([\d.\-]+) ([\d.]+) ([\d.]+)"/);MM={key:text,svg:r.svg,vb:m?m.slice(1).map(Number):null};MMpending='';render(true)})
+    .catch(()=>{MM={key:text,svg:'',fail:true};MMpending='';render(true)});
+  return null;
+}
+function edgesTable(x0,y0,W,G){
+  const cols=[[0,34,3],[34,196,25],[230,(W-230)/2,26],[230+(W-230)/2,(W-230)/2,26]];let y=y0,g='';
+  const cell=(items,max)=>items.flatMap(t=>wrap(t,max).map((l,j)=>(j?'  ':'· ')+l));
+  const row=(cells,o)=>{const ls=cells.map((c,i)=>Array.isArray(c)?cell(c,cols[i][2]):wrap(c,cols[i][2]));const h=Math.max(1,...ls.map(l=>l.length))*16+14;
+    if(o.head)g+=`<rect x="${x0}" y="${y}" width="${W}" height="${h}" fill="${COL.grayBg}"/>`;
+    ls.forEach((l,i)=>l.forEach((t,j)=>{g+=T(x0+cols[i][0]+8,y+19+j*16,t,{s:12,w:o.head||(i<2&&!Array.isArray(cells[i])&&j<o.bold)?700:400,c:o.head?COL.grayInk:COL.ink})}));
+    y+=h;g+=`<line x1="${x0}" y1="${y}" x2="${x0+W}" y2="${y}" stroke="${COL.line}"/>`};
+  row(['№','Связь','Туда →','← Обратно'],{head:true});
+  G.edges.forEach((r,i)=>{const nb=wrap(r.a.name,25).length;row([String(i+1),r.a.name+'\n'+'⇄ '+r.b.name,r.ab.length?r.ab:['—'],r.ba.length?r.ba:['—']],{bold:nb})});
+  L.ext.forEach(e=>{const f=EXTF[e]||['Обмен данными'];row(['В',e+'\n⇄ '+G.cr.name,[f[1]||'—'],[f[0]]],{bold:1})});
+  return {g,h:y-y0};
+}
+function sysTable(x0,y0,W,G){ // что где ведётся и зачем
+  const cols=[[0,200,26],[210,W-210,60]];let y=y0,g='';
+  const row=(a,b,o)=>{const la=wrap(a,cols[0][2]),lb=b.flatMap(x=>wrap(x,cols[1][2]));const h=Math.max(la.length,lb.length,1)*16+14;
+    if(o.head)g+=`<rect x="${x0}" y="${y}" width="${W}" height="${h}" fill="${COL.grayBg}"/>`;
+    la.forEach((t,j)=>{g+=T(x0+8,y+19+j*16,t,{s:12,w:700,c:o.head?COL.grayInk:o.nw?COL.magInk:COL.ink})});
+    lb.forEach((t,j)=>{g+=T(x0+cols[1][0]+8,y+19+j*16,t,{s:12,w:o.head||(o.nw&&j===0)?700:400,c:o.head?COL.grayInk:o.nw&&j===0?COL.magInk:COL.ink})});
+    y+=h;g+=`<line x1="${x0}" y1="${y}" x2="${x0+W}" y2="${y}" stroke="${COL.line}"/>`};
+  row('Система',['Зачем и что в ней ведётся'],{head:true});
+  [G.cr,...G.nodes.filter(o=>o!==G.cr)].forEach(o=>{const v=valOf(o),pr=procOf(o),nw=o.kind==='new'||o.kind==='ext';row(o.name,[...(nw&&v?['Зачем: '+v]:[]),...(pr.length?['Ведём: '+pr.join(', ')]:[])],{nw})});
+  return {g,h:y-y0};
+}
 function arch(){
   const cr=core(), nodes=systems().filter(o=>o.name!==cr.name);
   const W=680,nw=176,nh=96,gap=14,left=[],right=[],bottom=[];
@@ -367,7 +475,7 @@ function arch(){
     let ty=y+21;wrap(n.name,21).slice(0,2).forEach(l=>{s+=T(x+12,ty,l,{c:ink,w:700,s:13});ty+=16});
     s+=T(x+12,ty+1,status,{c:ink,s:11,w:isNew?700:400});ty+=15;
     if(isNew&&w2.length){const t='вместо '+w2.join(', ');s+=T(x+12,ty+1,t.length>28?t.slice(0,27)+'…':t,{c:ink,s:11});ty+=15}
-    const pr=procOf(n);if(pr.length){const t='здесь: '+pr[0].charAt(0).toLowerCase()+pr[0].slice(1);s+=T(x+12,ty+1,t.length>29?t.slice(0,28)+'…':t,{c:COL.mut,s:11})}
+    const pr=procOf(n),vv=valOf(n);if(isNew&&vv){const t='→ '+vv;s+=T(x+12,ty+1,t.length>29?t.slice(0,28)+'…':t,{c:COL.magInk,s:11,w:600})}else if(pr.length){const t='здесь: '+pr[0].charAt(0).toLowerCase()+pr[0].slice(1);s+=T(x+12,ty+1,t.length>29?t.slice(0,28)+'…':t,{c:COL.mut,s:11})}
     return s;
   };
   const LN='stroke="#5b6b78" stroke-width="1.2" marker-start="url(#ah)" marker-end="url(#ah)"';
@@ -484,10 +592,21 @@ function docSVG(){
   y=98;wrap((L.company||'Ваша компания')+': что можно сделать',48).forEach(l=>{b+=T(pad,y,l,{s:24,w:700});y+=30});
   b+=T(pad,y,'По итогам разговора на '+EVENT_P+'. Всё составлено со слов, уточним на встрече.',{s:13,c:COL.mut});y+=6;
   if(has('arch')){sec('Как это встраивается в ваши системы');
-    if(touched().length){const a=arch();b+=`<g transform="translate(${(W-680)/2} ${y})">${a.g}</g>`;y+=a.h;const t=table(pad,y,W-2*pad);b+=t.g;y+=t.h+8;
-      if(a.order.length||L.ext.length){cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
-        const f=flowsTable(pad,y,W-2*pad,a);b+=f.g;y+=f.h+8}}
-    else{b+=T(pad,y+16,'Системы не отмечены.',{c:COL.mut});y+=30}}
+    if(touched().length){
+      const G=graph(),mm=G.edges.length||L.ext.length?mmGet(mmText(G)):null;
+      if(mm&&mm.svg&&mm.vb){const [vx,vy,vw,vh]=mm.vb,sc=Math.min(1,(W-2*pad)/vw,1000/vh),dw=vw*sc,dh=vh*sc,ox=(W-dw)/2;
+        b+=`<g transform="translate(${ox} ${y})">`+mm.svg.replace(/<svg[^>]*>/,m=>`<svg width="${dw}" height="${dh}" viewBox="${vx} ${vy} ${vw} ${vh}" `+(m.match(/id="[^"]*"/)||[''])[0]+' xmlns="http://www.w3.org/2000/svg">')+'</g>';y+=dh+14;cuts.push(y);
+        const lg=[[COL.tealBg,COL.teal,'у вас'],[COL.magBg,COL.mag,'предлагаем'],['#fff',COL.gray,'обсудим'],[COL.grayBg,COL.gray,'внешние']];
+        lg.forEach((l,i)=>{const x=pad+i*150;b+=`<rect x="${x}" y="${y}" width="14" height="14" rx="3" fill="${l[0]}" stroke="${l[1]}" ${i===2?'stroke-dasharray="3 2"':''}/>`+T(x+22,y+12,l[2],{c:COL.mut,s:12})});y+=30;
+        const st=sysTable(pad,y,W-2*pad,G);b+=st.g;y+=st.h+8;
+        const t=table(pad,y,W-2*pad);cuts.push(y);b+=t.g;y+=t.h+8;
+        cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
+        const f=edgesTable(pad,y,W-2*pad,G);b+=f.g;y+=f.h+8;
+      }else{
+        const a=arch();b+=`<g transform="translate(${(W-680)/2} ${y})">${a.g}</g>`;y+=a.h;const t=table(pad,y,W-2*pad);b+=t.g;y+=t.h+8;
+        if(a.order.length||L.ext.length){cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
+          const f=flowsTable(pad,y,W-2*pad,a);b+=f.g;y+=f.h+8}}
+    }else{b+=T(pad,y+16,'Системы не отмечены.',{c:COL.mut});y+=30}}
   if(has('proc'))procKeys().forEach(pk=>{const pr=P[pk];sec('Как будет идти процесс: '+pr.n.toLowerCase());
     pr.s.forEach((st,i)=>{const h=46;b+=`<rect x="${pad}" y="${y}" width="190" height="${h}" rx="8" fill="${COL.ink}"/>`+T(pad+14,y+28,st[0].length>22?st[0].slice(0,21)+'…':st[0],{c:'#fff',w:600,s:13});
       b+=`<rect x="${pad+200}" y="${y}" width="${W-2*pad-200}" height="${h}" rx="8" fill="#fff" stroke="${COL.line}"/>`+T(pad+216,y+28,st[1],{s:14});
