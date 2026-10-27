@@ -90,7 +90,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <div class="wrap">
   <header>
     <div class="top">
-      <div class="brand">первый<b>бит</b> <small>Спортивная · v8</small></div>
+      <div class="brand">первый<b>бит</b> <small>Спортивная · v9</small></div>
       <div class="nav" id="nav"></div>
     </div>
     <div class="steps" id="stepsBar"></div>
@@ -135,7 +135,7 @@ const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
 const CM={};ALLC.forEach(c=>CM[c.id]=c);
 const indC=()=>{const out=[];arr(L.industry).forEach(i=>(IC[i]||[]).forEach(c=>{if(!out.includes(c))out.push(c)}));return out};
 const CC=()=>{const ic=indC();return [...ic,...ALLC.filter(c=>!ic.includes(c)&&(C.includes(c)||(L.sys[c.id]&&L.sys[c.id].st)))]};
-const ST=[['keep','Оставляем'],['add','Дополняем'],['replace','Меняем'],['none','Нет, нужна'],['q','Не знаю']];
+const ST=[['keep','Оставляем'],['integ','Интегрируем'],['add','Дополняем'],['replace','Меняем'],['none','Нет, нужна'],['q','Не знаю']];
 const EXT=['Банк','ЭДО','Честный знак','ЕГАИС','ФНС','Сайт','Маркетплейсы'];
 const IND=['Производство','Торговля и дистрибуция','Строительство','Гостиницы и недвижимость','Энергетика','Добыча','Транспорт и логистика','Агро и пищевое','Услуги','Другое'];
 const SIZE=['до 100','100–500','500–1 000','1 000–3 000','больше 3 000'];
@@ -196,11 +196,11 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 let ME=Object.assign({name:'Иван Овчинников',pos:'Менеджер по работе с клиентами',phone:'+7 917 576 76 59',email:'ISOvchinnikov@1cbit.ru',tgUser:'',link:''},store.get('fm_me',{}));
 let LEADS=store.get('fm_leads',[]);
 const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',company:'',industry:[],size:'',role:[],fio:'',pos:'',email:'',phone:'',tg:'',
-  sys:{},ext:[],indSys:'',focus:[],pain:'',timing:'',trigger:[],budget:'',proc:[],out:[],matsOff:[],
+  sys:{},ext:[],indSys:'',focus:[],pain:'',timing:'',trigger:[],budget:'',proc:[],out:[],integ:{},matsOff:[],
   when:'',later:'',meet:[],date:'',time:'',comment:'',pot:'',urg:'',example:false});
 let L=blank(), step=0, view='form', open='', DL=null;
 const CLIENT=()=>location.hash==='#client';
-function norm(x){['industry','role','trigger','meet','ext','focus','matsOff','proc','out'].forEach(k=>{const v=x[k];x[k]=Array.isArray(v)?v:(v?[v]:[])});Object.values(x.sys||{}).forEach(v=>{['cur','tgt'].forEach(k=>{const z=v[k];v[k]=Array.isArray(z)?z:(z?[z]:[])})});return x}
+function norm(x){if(!x.integ||typeof x.integ!=='object'||Array.isArray(x.integ))x.integ={};['industry','role','trigger','meet','ext','focus','matsOff','proc','out'].forEach(k=>{const v=x[k];x[k]=Array.isArray(v)?v:(v?[v]:[])});Object.values(x.sys||{}).forEach(v=>{['cur','tgt'].forEach(k=>{const z=v[k];v[k]=Array.isArray(z)?z:(z?[z]:[])})});return x}
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -211,18 +211,19 @@ function setP(p,v){const ks=p.split('.');let o=L;for(let i=0;i<ks.length-1;i++){
 /* ===================== логика ===================== */
 function sv(id){const v=L.sys[id]||{};return {cur:arr(v.cur),st:v.st||'',tgt:arr(v.tgt)}}
 function touched(){return CC().filter(c=>sv(c.id).st)}
-function changed(){return CC().filter(c=>['replace','none','add'].includes(sv(c.id).st))}
+function changed(){return CC().filter(c=>['replace','none','add','integ'].includes(sv(c.id).st))}
 const WAS={'Вручную':'ручной работы','Почта и папки':'почты и папок','Почта и телефон':'почты и звонков','В учётной системе':'справочников в учёте','Свои скрипты':'своих скриптов','Другая':'текущей системы','Нет поддержки':''};
 const was=n=>WAS[n]!==undefined?WAS[n]:n;
 function systems(){
   const m=new Map(),put=(name,kind,c,w)=>{let o=m.get(name);if(!o){o={name,kinds:new Set(),cs:[],cids:[],was:[],x:c.x};m.set(name,o)}o.kinds.add(kind);if(c.id&&!o.cids.includes(c.id))o.cids.push(c.id);if(!o.cs.includes(c.n))o.cs.push(c.n);arr(w).forEach(x=>{if(x!==name&&!o.was.includes(x))o.was.push(x)})};
   touched().forEach(c=>{const v=sv(c.id);
     if(v.st==='keep')(v.cur.length?v.cur:['Своя система']).forEach(n=>put(n,'keep',c));
+    else if(v.st==='integ')(v.cur.length?v.cur:['Своя система']).forEach(n=>put(n,'integ',c));
     else if(v.st==='q')(v.cur.length?v.cur:['Не определено']).forEach(n=>put(n,'q',c));
     else if(v.st==='add'){v.cur.forEach(n=>put(n,'keep',c));(v.tgt.length?v.tgt:['Подберём']).forEach(n=>put(n,'new',c))}
     else (v.tgt.length?v.tgt:['Подберём']).forEach(n=>put(n,'new',c,v.cur))});
   if(L.indSys.trim())put(L.indSys.trim(),'keep',{id:'ind',n:'Отраслевая система',x:'обмен данными'});
-  m.forEach(o=>{o.kind=o.kinds.has('new')?(o.kinds.has('keep')||o.kinds.has('q')?'ext':'new'):o.kinds.has('keep')?'keep':'q';o.was=o.was.filter(w=>!(m.get(w)&&m.get(w).kind!=='new'&&m.get(w).kinds.has('keep')))});
+  m.forEach(o=>{o.kind=o.kinds.has('integ')&&!o.kinds.has('new')?'integ':o.kinds.has('new')?(o.kinds.has('keep')||o.kinds.has('q')?'ext':'new'):o.kinds.has('keep')?'keep':'q';o.was=o.was.filter(w=>!(m.get(w)&&m.get(w).kind!=='new'&&m.get(w).kinds.has('keep')))});
   return [...m.values()];
 }
 const RANK=['1С:ERP Управление холдингом','1С:ERP','1С:ERP Управление строительной организацией','1С:КА','1С:Управление холдингом','1С:УХ','1С:Бухгалтерия КОРП','1С:УПП','1С:Бухгалтерия','SAP','Другая зарубежная'];
@@ -272,7 +273,7 @@ function newNames(){const S=systems().filter(o=>o.kind==='new'||o.kind==='ext').
 /* ===================== документ (SVG-лист) ===================== */
 const COL={ink:'#112434',mut:'#5b6b78',line:'#d5dde3',mag:'#D2026D',magBg:'#FBE6F0',magInk:'#8a0147',teal:'#1fae9e',tealBg:'#E3F6F3',tealInk:'#0b5a51',grayBg:'#F1F3F5',gray:'#9AA5AE',grayInk:'#34434f'};
 const F='Arial, Helvetica, sans-serif';
-function wrap(t,max){if(String(t).includes('\n'))return String(t).split('\n').flatMap((p,i)=>wrap(p,max-2).map((l,j)=>i?(j?'   '+l:(l.startsWith('⇄')?l:'· '+l)):l));const w=String(t).split(/\s+/),out=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max){if(cur)out.push(cur);cur=x}else cur=(cur+' '+x).trim()});if(cur)out.push(cur);return out}
+function wrap(t,max){if(String(t).includes('\n'))return String(t).split('\n').flatMap((p,i)=>wrap(p,max-2).map((l,j)=>i?(j?'   '+l:(/^[⇄★]/.test(l)?l:'· '+l)):l));const w=String(t).split(/\s+/),out=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max){if(cur)out.push(cur);cur=x}else cur=(cur+' '+x).trim()});if(cur)out.push(cur);return out}
 const T=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-family="${F}" font-size="${o.s||13}" font-weight="${o.w||400}" fill="${o.c||COL.ink}" text-anchor="${o.a||'start'}">${esc(t)}</text>`;
 const ARR='<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L8 5L1 9" fill="none" stroke="#5b6b78" stroke-width="1.6"/></marker></defs>';
 
@@ -360,7 +361,12 @@ const REL=[
  ['toir','hr',['Выработка ремонтного персонала'],['Сотрудники и квалификации']],
  ['toir','fin',['План затрат на ремонты'],['Лимиты бюджета на ремонты']],
  ['toir','prod',['План остановок на ремонт'],['Наработка и простои оборудования']],
- ['toir','doc',[],['Договоры с подрядчиками на ремонт']],
+ ['toir','doc',['Акты выполненных ремонтов на подпись'],['Договоры с подрядчиками на ремонт']],
+ ['doc','sales',['Подписанные договоры с клиентами'],['Сделки и контрагенты']],
+ ['doc','hr',['Приказы и служебные записки'],['Сотрудники и подразделения']],
+ ['doc','trans',[],['Договоры перевозки']],
+ ['bi','hr',[],['ФОТ и численность']],
+ ['rpa','doc',['Входящие документы на регистрацию'],['Документы для обработки']],
  ['bi','acc',[],['Данные учёта']],['bi','fin',[],['Бюджеты и факт']],['bi','sales',[],['Воронка и продажи']],['bi','toir',[],['Простои и затраты на ремонты']],['bi','prod',[],['Выпуск и себестоимость']],['bi','wh',[],['Остатки и движения']],
  ['rpa','acc',['Созданные документы, после подтверждения'],['Данные в пределах прав пользователя']],
  ['itsm','hr',[],['Сотрудники и оргструктура']],
@@ -382,41 +388,62 @@ function graph(){
   let S=systems(); const c0=core(); let cr=S.find(o=>o.name===c0.name);
   if(!cr){cr=c0;S=[cr,...S]}
   S=S.filter(o=>!(o.cids||[]).every(id=>id==='supp'));
-  // главная система каждого блока: при «дополняем» — текущая, иначе первая
   const prim={};
   [...touched(),...(L.indSys.trim()?[{id:'ind'}]:[])].forEach(c=>{const v=c.id==='ind'?{st:'keep',cur:[L.indSys.trim()]}:sv(c.id);
-    const nm=v.st==='add'?v.cur[0]:(v.st==='keep'||v.st==='q')?(v.cur[0]||'Своя система'):(v.tgt[0]||'Подберём');
+    const nm=v.st==='add'?v.cur[0]:['keep','q','integ'].includes(v.st)?(v.cur[0]||'Своя система'):(v.tgt[0]||'Подберём');
     const o=S.find(x=>x.name===nm);if(o)prim[c.id]=o});
-  if(cr&&(cr.cids||[]).length)cr.cids.forEach(id=>{if(!prim[id])prim[id]=cr});
-  const E=new Map(),key=(a,b)=>a.name+'§'+b.name;
-  const add=(a,b,ab,ba)=>{if(!a||!b||a===b)return;let k=key(a,b),r=E.get(k);if(!r&&E.get(key(b,a))){[a,b,ab,ba]=[b,a,ba,ab];k=key(a,b);r=E.get(k)}
-    if(!r){r={a,b,ab:[],ba:[]};E.set(k,r)}ab.forEach(x=>{if(!r.ab.includes(x))r.ab.push(x)});ba.forEach(x=>{if(!r.ba.includes(x))r.ba.push(x)})};
-  REL.forEach(([x,y,ab,ba])=>add(prim[x],prim[y],ab,ba));
-  // дополнительные системы блока привязываем к главной
-  S.forEach(o=>{if(o===cr)return;const pid=(o.cids||[]).find(id=>prim[id]&&prim[id]!==o);if(pid&&!Object.values(prim).includes(o)){const f=flowOf(o);add(o,prim[pid],f.in,f.out)}});
-  // кто остался без связей — к мастер-системе
-  S.forEach(o=>{if(o===cr)return;const linked=[...E.values()].some(r=>r.a===o||r.b===o);if(!linked){const f=flowOf(o);add(o,cr,f.in,f.out)}});
-  const edges=[...E.values()].filter(r=>r.ab.length||r.ba.length);
-  return {cr,nodes:S,edges};
+  (cr.cids||[]).forEach(id=>{if(!prim[id])prim[id]=cr});
+  const isOurs=o=>o&&(o.kind==='new'||o.kind==='integ'||o.kind==='ext');
+  const relBetween=(x,y)=>{const ab=[],ba=[];REL.forEach(([a,b,f,r])=>{if((x.cids||[]).includes(a)&&(y.cids||[]).includes(b)&&prim[a]===x&&prim[b]===y){f.forEach(t=>ab.push(t));r.forEach(t=>ba.push(t))}else if((x.cids||[]).includes(b)&&(y.cids||[]).includes(a)&&prim[b]===x&&prim[a]===y){r.forEach(t=>ab.push(t));f.forEach(t=>ba.push(t))}});return {ab:uniq(ab),ba:uniq(ba)}};
+  const extraOf=o=>!Object.values(prim).includes(o)&&(o.cids||[]).find(id=>prim[id]&&prim[id]!==o);
+  const flowsXY=(x,y)=>{const r=relBetween(x,y);if(r.ab.length||r.ba.length)return r;
+    const pid=extraOf(x);if(pid&&prim[pid]===y){const f=flowOf(x);return {ab:f.in,ba:f.out}}
+    const pid2=extraOf(y);if(pid2&&prim[pid2]===x){const f=flowOf(y);return {ab:f.out,ba:f.in}}
+    if(y===cr){const f=flowOf(x);if(f.in.length||f.out.length)return {ab:f.in,ba:f.out}}
+    if(x===cr){const f=flowOf(y);if(f.in.length||f.out.length)return {ab:f.out,ba:f.in}}
+    return {ab:['Данные по согласованному обмену'],ba:[]}};
+  const defaults=x=>{const out=[];S.forEach(y=>{if(y===x)return;const r=relBetween(x,y);if(r.ab.length||r.ba.length)out.push(y.name)});
+    const pid=extraOf(x);if(pid&&!out.includes(prim[pid].name))out.push(prim[pid].name);
+    if(!out.length&&x!==cr)out.push(cr.name);return out};
+  const E=new Map();
+  const add=(a,b,ab,ba,ours)=>{if(!a||!b||a===b)return;let k=a.name+'§'+b.name;if(!E.has(k)&&E.has(b.name+'§'+a.name)){[a,b,ab,ba]=[b,a,ba,ab];k=a.name+'§'+b.name}
+    let r=E.get(k);if(!r){r={a,b,ab:[],ba:[],ours:false};E.set(k,r)}ab.forEach(x=>{if(!r.ab.includes(x))r.ab.push(x)});ba.forEach(x=>{if(!r.ba.includes(x))r.ba.push(x)});r.ours=r.ours||ours};
+  const targets=S.filter(isOurs);
+  const partners={};
+  targets.forEach(x=>{const sel=L.integ&&L.integ[x.name]?L.integ[x.name]:defaults(x);partners[x.name]=sel;
+    sel.forEach(n=>{if(EXTF[n]){add(x,{name:'§ext',ext:n},[EXTF[n][0]],[EXTF[n][1]||''],true);return}
+      const y=S.find(o=>o.name===n);if(y){const f=flowsXY(x,y);add(x,y,f.ab,f.ba,true)}})});
+  // существующие обмены между системами клиента (для контекста)
+  REL.forEach(([a,b,f,r])=>{const x=prim[a],y=prim[b];if(x&&y&&x!==y&&!isOurs(x)&&!isOurs(y))add(x,y,f,r,false)});
+  // никто не должен висеть отдельно
+  S.forEach(o=>{if(o===cr)return;if(![...E.values()].some(r=>r.a===o||r.b===o)){const f=flowsXY(o,cr);add(o,cr,f.ab,f.ba,isOurs(o))}});
+  const edges=[...E.values()].map(r=>r.b.name==='§ext'?Object.assign(r,{ext:true}):r).filter(r=>r.ab.length||r.ba.length);
+  edges.forEach(r=>{r.ab=r.ab.filter(Boolean);r.ba=r.ba.filter(Boolean)});
+  edges.sort((p,q)=>(q.ours-p.ours));
+  return {cr,nodes:S,edges,targets,defaults,partners};
 }
 let MM={key:'',svg:''},MMpending='',MMn=0,MMinit=false;
 function mmText(G){
   const id=new Map();G.nodes.forEach((o,i)=>id.set(o,'n'+i));
   const q=t=>String(t).replace(/["<>]/g,'').replace(/#/g,'№');
-  let t='flowchart TB\n';
-  G.nodes.forEach(o=>{const k=o===G.cr?'core':o.kind;const st=o===G.cr?(o.kind==='new'?'МАСТЕР-СИСТЕМА · ПРЕДЛАГАЕМ':'МАСТЕР-СИСТЕМА · У ВАС'):o.kind==='new'?'предлагаем':o.kind==='ext'?'у вас · дополняем':o.kind==='q'?'у вас · обсудим':'у вас · остаётся';
-    const w=(o.was||[]).map(was).filter(Boolean);const v=o.kind==='new'||o===G.cr&&o.kind==='new'?valOf(o):'';
+  let t='flowchart TB\n';const styles=[];let li=0;
+  G.nodes.forEach(o=>{const isC=o===G.cr;const st=isC?(o.kind==='new'?'МАСТЕР-СИСТЕМА · ПРЕДЛАГАЕМ':'МАСТЕР-СИСТЕМА · У ВАС'):o.kind==='new'?'предлагаем':o.kind==='integ'?'у вас · интегрируем':o.kind==='ext'?'у вас · дополняем':o.kind==='q'?'у вас · обсудим':'у вас · остаётся';
+    const w=(o.was||[]).map(was).filter(Boolean);const v=o.kind==='new'?valOf(o):o.kind==='integ'?'данные без ручного переноса':'';
     const lines=[q(o.name).toUpperCase(),q(st)];if(o.kind==='new'&&w.length)lines.push('вместо '+q(w.join(', ')));if(v)lines.push('→ '+q(v));
-    t+=`  ${id.get(o)}["${lines.join('<br/>')}"]:::${k==='core'?(o.kind==='new'?'corenew':'corekeep'):k}\n`});
-  if(L.ext.length){t+=`  ext["Внешние: ${q(L.ext.join(', '))}"]:::extsys\n  ext <-->|В| ${id.get(G.cr)}\n`}
-  G.edges.forEach((r,i)=>{const both=r.ab.length&&r.ba.length;t+=both?`  ${id.get(r.a)} <-->|${i+1}| ${id.get(r.b)}\n`:r.ab.length?`  ${id.get(r.a)} -->|${i+1}| ${id.get(r.b)}\n`:`  ${id.get(r.b)} -->|${i+1}| ${id.get(r.a)}\n`});
-  t+='  classDef new fill:#FBE6F0,stroke:#D2026D,stroke-width:2px,color:#8a0147\n  classDef keep fill:#E3F6F3,stroke:#1fae9e,color:#0b5a51\n  classDef ext fill:#E3F6F3,stroke:#1fae9e,color:#0b5a51\n  classDef q fill:#ffffff,stroke:#9AA5AE,stroke-dasharray:5 4,color:#34434f\n  classDef extsys fill:#F1F3F5,stroke:#9AA5AE,color:#34434f\n  classDef corenew fill:#FBE6F0,stroke:#D2026D,stroke-width:4px,color:#8a0147\n  classDef corekeep fill:#E3F6F3,stroke:#1fae9e,stroke-width:4px,color:#0b5a51\n';
-  return t;
+    const cls=isC?(o.kind==='new'?'corenew':'corekeep'):o.kind;
+    t+=`  ${id.get(o)}["${lines.join('<br/>')}"]:::${cls}\n`});
+  if(L.ext.length){t+=`  ext["Внешние: ${q(L.ext.join(', '))}"]:::extsys\n  ext <-->|В| ${id.get(G.cr)}\n`;styles.push(`linkStyle ${li++} stroke:#9AA5AE,stroke-width:1px`)}
+  G.edges.forEach((r,i)=>{const a=id.get(r.a),b=r.ext?'ext':id.get(r.b);const both=r.ab.length&&r.ba.length;
+    if(r.ext&&!L.ext.length)return;
+    t+=both?`  ${a} <-->|${i+1}| ${b}\n`:r.ab.length?`  ${a} -->|${i+1}| ${b}\n`:`  ${b} -->|${i+1}| ${a}\n`;
+    styles.push(`linkStyle ${li++} stroke:${r.ours?'#D2026D':'#9AA5AE'},stroke-width:${r.ours?2:1}px`)});
+  t+='  classDef new fill:#FBE6F0,stroke:#D2026D,stroke-width:2px,color:#8a0147\n  classDef integ fill:#E3F6F3,stroke:#D2026D,stroke-width:2px,stroke-dasharray:6 3,color:#0b5a51\n  classDef keep fill:#E3F6F3,stroke:#1fae9e,color:#0b5a51\n  classDef ext fill:#E3F6F3,stroke:#D2026D,stroke-width:2px,color:#0b5a51\n  classDef q fill:#ffffff,stroke:#9AA5AE,stroke-dasharray:5 4,color:#34434f\n  classDef extsys fill:#F1F3F5,stroke:#9AA5AE,color:#34434f\n  classDef corenew fill:#FBE6F0,stroke:#D2026D,stroke-width:4px,color:#8a0147\n  classDef corekeep fill:#E3F6F3,stroke:#1fae9e,stroke-width:4px,color:#0b5a51\n';
+  return t+styles.map(x=>'  '+x).join('\n')+'\n';
 }
 function mmGet(text){
   if(MM.key===text)return MM;
   if(!window.mermaid)return null;
-  if(!MMinit){try{mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'Arial, Helvetica, sans-serif',fontSize:'13px',lineColor:'#5b6b78',primaryTextColor:'#112434',edgeLabelBackground:'#ffffff'},flowchart:{htmlLabels:false,curve:'basis',nodeSpacing:28,rankSpacing:46,padding:10,wrappingWidth:210}})}catch(e){}MMinit=true}
+  if(!MMinit){try{mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'Arial, Helvetica, sans-serif',fontSize:'13px',lineColor:'#5b6b78',primaryTextColor:'#112434',edgeLabelBackground:'#ffffff'},flowchart:{htmlLabels:false,curve:'step',nodeSpacing:28,rankSpacing:46,padding:10,wrappingWidth:210}})}catch(e){}MMinit=true}
   if(MMpending===text)return null; MMpending=text;
   mermaid.render('mmg'+(++MMn),text).then(r=>{const m=r.svg.match(/viewBox="([\d.\-]+) ([\d.\-]+) ([\d.]+) ([\d.]+)"/);MM={key:text,svg:r.svg,vb:m?m.slice(1).map(Number):null};MMpending='';render(true)})
     .catch(()=>{MM={key:text,svg:'',fail:true};MMpending='';render(true)});
@@ -430,7 +457,7 @@ function edgesTable(x0,y0,W,G){
     ls.forEach((l,i)=>l.forEach((t,j)=>{g+=T(x0+cols[i][0]+8,y+19+j*16,t,{s:12,w:o.head||(i<2&&!Array.isArray(cells[i])&&j<o.bold)?700:400,c:o.head?COL.grayInk:COL.ink})}));
     y+=h;g+=`<line x1="${x0}" y1="${y}" x2="${x0+W}" y2="${y}" stroke="${COL.line}"/>`};
   row(['№','Связь','Туда →','← Обратно'],{head:true});
-  G.edges.forEach((r,i)=>{const nb=wrap(r.a.name,25).length;row([String(i+1),r.a.name+'\n'+'⇄ '+r.b.name,r.ab.length?r.ab:['—'],r.ba.length?r.ba:['—']],{bold:nb})});
+  G.edges.forEach((r,i)=>{const bn=r.ext?r.ext:r.b.name;const nb=wrap(r.a.name,25).length;row([String(i+1),r.a.name+'\n'+'⇄ '+bn+(r.ours?'\n★ делаем мы':''),r.ab.length?r.ab:['—'],r.ba.length?r.ba:['—']],{bold:nb})});
   L.ext.forEach(e=>{const f=EXTF[e]||['Обмен данными'];row(['В',e+'\n⇄ '+G.cr.name,[f[1]||'—'],[f[0]]],{bold:1})});
   return {g,h:y-y0};
 }
@@ -505,7 +532,7 @@ function flowsTable(x0,y0,W,a){
   L.ext.forEach(e=>{const f=EXTF[e]||['Обмен данными'];row(['В',e,[f[0]],[f[1]||'—']],{})});
   return {g,h:y-y0};
 }
-function propText(c){const v=sv(c.id);return v.st==='keep'?'оставляем':v.st==='q'?'обсудим на встрече':v.st==='add'?'добавить: '+(v.tgt.join(', ')||'подберём'):(v.tgt.join(', ')||'подберём')}
+function propText(c){const v=sv(c.id);return v.st==='integ'?'интегрируем с другими системами':v.st==='keep'?'оставляем':v.st==='q'?'обсудим на встрече':v.st==='add'?'добавить: '+(v.tgt.join(', ')||'подберём'):(v.tgt.join(', ')||'подберём')}
 function table(x0,y0,W){
   const cols=[[0,190,26],[200,215,30],[425,W-425,30]];let y=y0,g='';
   const row=(cells,o)=>{const ls=cells.map((t,i)=>wrap(t,cols[i][2]));const h=Math.max(...ls.map(l=>l.length))*17+14;
@@ -534,6 +561,7 @@ const EFF={
  toir:['Меньше аварийных простоев за счёт ППР','История ремонтов по каждой единице оборудования','Затраты на ремонты по объектам'],
  bi:['Руководитель видит цифры утром, а не в середине месяца','Одна методика расчёта показателей','Аналитики анализируют, а не сводят таблицы'],
  rpa:['Рутину делает агент или робот, люди проверяют исключения','Отчёты и сводки по запросу в чате','Рост объёма без новых ставок'],
+ integ:['Данные идут между системами без ручного переноса','Нет расхождений между учётом и рабочими системами','Отчёты сходятся, потому что источник один'],
  itsm:['Все заявки в одном месте, со сроками','Видна нагрузка на ИТ','Штат и бюджет ИТ обосновываются цифрами'],
  supp:['Предсказуемые сроки реакции','Обновления без остановки работы','Прозрачные часы на доработки'],
  trans:['Затраты на каждый рейс и ТС видны сразу','Контроль топлива по данным GPS','Путевые листы без бумаги'],
@@ -566,11 +594,12 @@ const RISKCUR={'1С:УПП':'1С:УПП снята с развития: изме
 const ITNEED=[[/./,'Лицензии 1С: платформа и клиентские места'],[/./,'Сервер 1С и СУБД (PostgreSQL или MS SQL)'],[/./,'Ответственный от ИТ на проекте и доступы для интеграций'],
  [/WMS|ТСД/,'Терминалы сбора данных и Wi-Fi на складе'],[/GPS/,'Трекеры на транспорт'],[/водителя|обходчик/,'Смартфоны или планшеты у сотрудников'],[/PIX Оператор/,'Сервер в контуре компании для ИИ-агента или разрешение на облако; для отчётов в конфигурации нужна БСП'],[/PIX RPA/,'Виртуальные машины для роботов'],[/Кадровый ЭДО|Документооборот/,'Электронные подписи сотрудников и руководителей'],[/BI|DWH|Аналитика/,'Сервер для BI или хранилища данных'],[/Битрикс24/,'Битрикс24: облако или коробка, по требованиям ИБ']];
 function outBlocks(){return uniq([...focusIds(),...changed().map(c=>c.id)])}
+const hasInteg=()=>changed().some(c=>sv(c.id).st==='integ');
 function riskList(){const r=[];changed().forEach(c=>sv(c.id).cur.forEach(x=>{if(RISKCUR[x]&&!r.includes(RISKCUR[x]))r.push(RISKCUR[x])}));return r}
 function itList(){const names=newNames().join(' | ');const r=ITNEED.filter(([re])=>re.test(names)||re.source==='.').map(x=>x[1]);if(core().kind==='new')r.push('Выгрузки из старых систем для переноса данных');if(L.ext.includes('Честный знак'))r.push('Сканеры 2D-кодов для маркировки');return uniq(r)}
 function roadStages(){
   const f=focusIds().filter(id=>changed().some(c=>c.id===id)),rest=changed().map(c=>c.id).filter(id=>!f.includes(id));
-  const nm=id=>CM[id].n+': '+(sv(id).tgt.join(', ')||'подберём');
+  const nm=id=>CM[id].n+': '+(sv(id).st==='integ'?'интеграция '+(sv(id).cur.join(', ')||'текущей системы'):(sv(id).tgt.join(', ')||'подберём'));
   const st=[['Обследование',['Разбираем процессы и системы','Фиксируем объём, сроки и бюджет по очередям']]];
   if(f.length)st.push(['Первая очередь',f.map(nm)]);
   if(rest.length)st.push([f.length?'Следующие очереди':'Очереди внедрения',rest.map(nm)]);
@@ -596,8 +625,9 @@ function docSVG(){
       const G=graph(),mm=G.edges.length||L.ext.length?mmGet(mmText(G)):null;
       if(mm&&mm.svg&&mm.vb){const [vx,vy,vw,vh]=mm.vb,sc=Math.min(1,(W-2*pad)/vw,1000/vh),dw=vw*sc,dh=vh*sc,ox=(W-dw)/2;
         b+=`<g transform="translate(${ox} ${y})">`+mm.svg.replace(/<svg[^>]*>/,m=>`<svg width="${dw}" height="${dh}" viewBox="${vx} ${vy} ${vw} ${vh}" `+(m.match(/id="[^"]*"/)||[''])[0]+' xmlns="http://www.w3.org/2000/svg">')+'</g>';y+=dh+14;cuts.push(y);
-        const lg=[[COL.tealBg,COL.teal,'у вас'],[COL.magBg,COL.mag,'предлагаем'],['#fff',COL.gray,'обсудим'],[COL.grayBg,COL.gray,'внешние']];
-        lg.forEach((l,i)=>{const x=pad+i*150;b+=`<rect x="${x}" y="${y}" width="14" height="14" rx="3" fill="${l[0]}" stroke="${l[1]}" ${i===2?'stroke-dasharray="3 2"':''}/>`+T(x+22,y+12,l[2],{c:COL.mut,s:12})});y+=30;
+        const lg=[[COL.tealBg,COL.teal,'у вас'],[COL.magBg,COL.mag,'предлагаем'],[COL.tealBg,COL.mag,'интегрируем'],['#fff',COL.gray,'обсудим']];
+        b+=`<line x1="${pad+480}" y1="${y+7}" x2="${pad+510}" y2="${y+7}" stroke="${COL.mag}" stroke-width="2"/>`+T(pad+516,y+12,'наша связь',{c:COL.mut,s:12});
+        lg.forEach((l,i)=>{const x=pad+i*118;b+=`<rect x="${x}" y="${y}" width="14" height="14" rx="3" fill="${l[0]}" stroke="${l[1]}" ${i===2?'stroke-dasharray="3 2"':''}/>`+T(x+22,y+12,l[2],{c:COL.mut,s:12})});y+=30;
         const st=sysTable(pad,y,W-2*pad,G);b+=st.g;y+=st.h+8;
         const t=table(pad,y,W-2*pad);cuts.push(y);b+=t.g;y+=t.h+8;
         cuts.push(y);y+=30;b+=T(pad,y,'Чем обмениваются системы',{s:15,w:700});y+=6;b+=T(pad,y+14,'Номера совпадают с номерами связей на схеме. Это типовые потоки, на встрече уточним по вашим системам.',{s:12,c:COL.mut});y+=26;
@@ -612,7 +642,7 @@ function docSVG(){
       b+=`<rect x="${pad+200}" y="${y}" width="${W-2*pad-200}" height="${h}" rx="8" fill="#fff" stroke="${COL.line}"/>`+T(pad+216,y+28,st[1],{s:14});
       y+=h;if(i<pr.s.length-1){b+=`<line x1="${pad+95}" y1="${y+2}" x2="${pad+95}" y2="${y+14}" stroke="#5b6b78" stroke-width="1.2" marker-end="url(#ah)"/>`;y+=16}});
     y+=4;});
-  if(has('eff')){const gs=blk.filter(id=>EFF[id]).map(id=>({title:CM[id].n,items:EFF[id]}));if(gs.length){sec('Что это может дать');groups(gs,'dot');b+=T(pad,y,'Цифры эффекта посчитаем вместе на ваших данных.',{s:12,c:COL.mut});y+=14}}
+  if(has('eff')){const gs=blk.filter(id=>EFF[id]&&sv(id).st!=='integ').map(id=>({title:CM[id].n,items:EFF[id]}));if(hasInteg())gs.push({title:'Интеграция систем',items:EFF.integ});if(gs.length){sec('Что это может дать');groups(gs,'dot');b+=T(pad,y,'Цифры эффекта посчитаем вместе на ваших данных.',{s:12,c:COL.mut});y+=14}}
   if(has('calc')){const gs=blk.filter(id=>CALC[id]).map(id=>({title:CM[id].n,items:CALC[id]}));if(gs.length){sec('Какие цифры собрать, чтобы посчитать эффект');groups(gs,'box')}}
   if(has('road')&&changed().length){sec('Дорожная карта');
     roadStages().forEach(([t,items],i,arrS)=>{const ls=items.flatMap(x=>wrap(x,58));const h=Math.max(46,26+ls.length*17);
@@ -639,7 +669,8 @@ function docSVG(){
 function emailText(){
   const nm=firstName(), nn=newNames(), pks=procKeys(), mg=matGroups().filter(g=>g.items.length), mt=agreeText(true);
   const ok=outKeys(),parts=[];
-  if(ok.includes('arch'))parts.push(nn.length?'схема: как '+nn.slice(0,4).join(', ')+' встанут в вашу текущую архитектуру и чем системы будут обмениваться':'схема ваших систем и обменов между ними');
+  const ig=systems().filter(o=>o.kind==='integ').map(o=>o.name);
+  if(ok.includes('arch')){const a=[];if(nn.length)a.push('как '+nn.slice(0,4).join(', ')+' встанут в вашу текущую архитектуру');if(ig.length)a.push('как связать '+ig.join(', ')+' с другими системами');parts.push('схема: '+(a.length?a.join(' и ')+', и чем системы будут обмениваться':'ваши системы и обмены между ними'))}
   if(ok.includes('proc')&&pks.length)parts.push((pks.length>1?'описание процессов ':'описание процесса ')+pks.map(k=>'«'+P[k].n.toLowerCase()+'»').join(', '));
   ['eff','calc','road','risk','it'].forEach(k=>{if(ok.includes(k))parts.push(OUTN[k].charAt(0).toLowerCase()+OUTN[k].slice(1))});
   let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Как обещал, во вложении материалы по вашей задаче:\n${parts.map(x=>'— '+x).join('\n')}\n\nВсё составлено со слов, на встрече уточним на ваших данных.\n`;
@@ -701,13 +732,20 @@ function s1(){
   const ic=indC();
   const rows=CC().map(c=>{
     const v=sv(c.id), o=open===c.id, nw=['replace','none','add'].includes(v.st);
-    const sum=v.st?`<span class="${nw?'st-new':v.st==='keep'?'st-keep':''}">${esc(v.cur.join(', ')||'нет')}${nw?' → '+esc(v.tgt.join(', ')||'?'):v.st==='keep'?' · остаётся':' · ?'}</span>`:'<span>не отмечено</span>';
+    const sum=v.st?`<span class="${nw||v.st==='integ'?'st-new':v.st==='keep'?'st-keep':''}">${esc(v.cur.join(', ')||'нет')}${nw?' → '+esc(v.tgt.join(', ')||'?'):v.st==='keep'?' · остаётся':v.st==='integ'?' · интегрируем':' · ?'}</span>`:'<span>не отмечено</span>';
     return `<div class="ct"><button type="button" data-open="${c.id}" aria-expanded="${o}"><b>${esc(c.n)}${ic.includes(c)?' <small style="color:var(--magenta);font-weight:600">· отрасль</small>':''}</b>${sum}</button>
     ${o?`<div class="body"><div class="lbl">Сейчас у клиента</div>${chips('sys.'+c.id+'.cur',c.cur,true)}<div class="lbl">Что с этим делать</div>${chips('sys.'+c.id+'.st',ST)}
       ${nw?`<div class="lbl">${v.st==='add'?'Что добавить':'Что предлагаем'}</div>${chips('sys.'+c.id+'.tgt',c.tgt,true)}`:''}</div>`:''}</div>`}).join('');
   return `<h1>Что стоит сейчас</h1><p class="hint">Открой только нужные блоки. В каждом можно отметить несколько систем.</p>${rows}
   <h2>Внешние системы</h2>${chips('ext',EXT,true)}
-  <div style="margin-top:12px">${inp('indSys','Отраслевая система, если есть','text','Например, PMS отеля, LIMS, MES')}</div>`;
+  <div style="margin-top:12px">${inp('indSys','Отраслевая система, если есть','text','Например, PMS отеля, LIMS, MES')}</div>
+  ${CLIENT()?'':integBlock()}`;
+}
+function integBlock(){
+  const G=graph();if(!G.targets.length)return '';
+  const all=[...G.nodes.map(o=>o.name),...L.ext];
+  return `<h2>С чем интегрировать</h2><p class="hint">По каждой системе, которую предлагаем или интегрируем. Типовые связи отмечены, поправь под клиента.</p>`+
+    G.targets.map(x=>{const sel=G.partners[x.name]||[];return `<div class="ct" style="padding:4px 14px 12px"><div class="lbl" style="margin:8px 0 6px">${esc(x.name)}</div><div class="chips">${all.filter(n=>n!==x.name).map(n=>`<button type="button" class="chip" data-integ="${esc(x.name)}" data-v="${esc(n)}" aria-pressed="${sel.includes(n)}">${esc(n)}</button>`).join('')}</div></div>`}).join('');
 }
 function s2(){
   const tc=touched();
@@ -808,6 +846,8 @@ document.addEventListener('click',e=>{
     else setP(p,getP(p)===v?'':v);
     if(p==='focus')L.proc=[];if(p==='role')L.out=[];
     save();saveLead();render(true);return}
+  const ig=e.target.closest('[data-integ]');
+  if(ig){const G=graph(),x=ig.dataset.integ,v=ig.dataset.v;L.integ=L.integ||{};const cur=(L.integ[x]||G.partners[x]||[]).slice();const i=cur.indexOf(v);i>=0?cur.splice(i,1):cur.push(v);L.integ[x]=cur;save();saveLead();render(true);return}
   const o=e.target.closest('[data-open]');if(o){open=open===o.dataset.open?'':o.dataset.open;render(true);return}
   const b=e.target.closest('button');if(!b)return;const id=b.id;
   if(b.dataset.step!=null){step=+b.dataset.step;open='';save();render();return}
