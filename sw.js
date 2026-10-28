@@ -1,5 +1,5 @@
 // Офлайн: после первого открытия страница, схема и QR работают без сети
-const C='forum-v26';
+const C='forum-v27';
 const SAME=['./','./index.html','./mermaid.min.js'];
 const CROSS=['https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>Promise.all([c.addAll(SAME),...CROSS.map(u=>fetch(u,{mode:'no-cors'}).then(r=>c.put(u,r)).catch(()=>{}))])).then(()=>self.skipWaiting()))});
