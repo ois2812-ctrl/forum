@@ -8,6 +8,9 @@ self.addEventListener('fetch',e=>{
   const r=e.request;if(r.method!=='GET')return;
   const u=new URL(r.url);
   if(u.origin===location.origin&&u.pathname.endsWith('version.txt'))return; // проверка версии всегда из сети
+  const base=new URL('./',self.location).pathname;
+  if(u.origin===location.origin&&!u.pathname.startsWith(base))return;
+  if(u.origin===location.origin&&u.pathname.slice(base.length).includes('/'))return; // архивные версии в подпапках не трогаем
   const page=r.mode==='navigate'||(u.origin===location.origin&&/\/(index\.html)?$/.test(u.pathname));
   if(page){e.respondWith(fetch(r).then(res=>{const cp=res.clone();caches.open(C).then(c=>c.put('./index.html',cp));return res}).catch(()=>caches.match('./index.html')));return}
   e.respondWith(caches.match(r,{ignoreSearch:u.origin===location.origin}).then(hit=>hit||fetch(r).then(res=>{if(res&&(res.ok||res.type==='opaque')){const cp=res.clone();caches.open(C).then(c=>c.put(r,cp))}return res})));
