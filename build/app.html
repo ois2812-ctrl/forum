@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Разбор задачи ERP-форум</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+{{CSS}}
+/* новая форма */
+.prog{height:4px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--magenta);transition:width .2s}
+.qtopic{font-size:12px;color:var(--magenta);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:6px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.opt{font:inherit;font-size:16px;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:14px 16px;cursor:pointer;line-height:1.3}
+.opt[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.sugg{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.sugg button{font:inherit;font-size:15px;text-align:left;border:1px dashed var(--magenta);background:var(--surface);color:var(--fg);border-radius:10px;padding:10px 12px;cursor:pointer}
+.sugg button b{color:var(--magenta);font-weight:600}
+.picked{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.picked button{font:inherit;font-size:14px;border:none;background:var(--chip-on);color:var(--chip-on-fg);border-radius:10px;padding:8px 11px;cursor:pointer}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:12px}
+.card h2{margin:0 0 6px;font-size:17px}
+.card h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 4px;font-weight:600}
+.card ul{margin:0;padding-left:18px}
+.card li{margin:3px 0}
+.card p{margin:4px 0}
+.chk li{list-style:none;position:relative;padding-left:4px}
+.chk li::before{content:"";position:absolute;left:-18px;top:5px;width:12px;height:12px;border:1.5px solid var(--magenta);border-radius:3px}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="top">{{BRAND}}<div class="nav" id="nav"></div></div>
+    <div class="prog" id="prog"><i style="width:0"></i></div>
+  </header>
+  <main id="app"><h1>Страница открылась в просмотрщике файлов</h1><p class="hint" style="font-size:16px">Здесь она не работает: просмотрщик не запускает скрипты. Откройте её по ссылке в Safari или Chrome.</p></main>
+</div>
+<div class="bar"><div class="in" id="barIn"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const APPV={{V}};
+(function(){try{fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const v=parseInt(t,10);if(v>APPV){const d=document.createElement('div');d.className='toast';d.style.bottom='auto';d.style.top='calc(12px + env(safe-area-inset-top,0px))';d.innerHTML='Есть новая версия v'+v+'. <a href="?v='+v+location.hash+'" style="color:#25C6B3;font-weight:700">Обновить</a>';document.body.appendChild(d)}}).catch(()=>{})}catch(e){}})();
+const KB={{KB}};
+const EVENT='форум 1С:ERP, 26 ноября 2026', EVENT_P='форуме 1С:ERP';
+const POPULAR=['upp','toir','budget','cons','doc','itsm','ai','wh'];
+const TM={};KB.topics.forEach(t=>TM[t.id]=t);
+
+/* ---------- состояние ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let ME=Object.assign({name:'Иван Овчинников',pos:'Менеджер по работе с клиентами',phone:'+7 917 576 76 59',email:'ISOvchinnikov@1cbit.ru',tgUser:'@ovchi_21',link:'',policy:''},store.get('fm_me',{}));
+if(!ME.tgUser)ME.tgUser='@ovchi_21';
+let LEADS=store.get('kb_leads',[]);
+const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',text:'',topics:[],ans:{},step:0,company:'',fio:'',pos:'',email:'',phone:'',comment:'',consent:false});
+let S=blank(),view='form';
+const CLIENT=()=>location.hash==='#c';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
+const uniq=a=>[...new Set(a.filter(Boolean))];
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
+function save(){if(!CLIENT())store.set('kb_draft',S)}
+function saveLead(){if(CLIENT()||!S.topics.length)return;const i=LEADS.findIndex(x=>x.id===S.id),c=JSON.parse(JSON.stringify(S));i>=0?LEADS[i]=c:LEADS.push(c);store.set('kb_leads',LEADS)}
+
+/* ---------- распознавание темы по словам ---------- */
+const norm=s=>String(s).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9\- ]/g,' ');
+function lev1(a,b){if(Math.abs(a.length-b.length)>1)return false;let i=0,j=0,e=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++}}return e+(a.length-i)+(b.length-j)<=1}
+function match(text){const toks=norm(text).split(/\s+/).filter(Boolean);if(!toks.length)return [];
+  const hit=k=>{k=norm(k).trim();if(!k)return false;if(k.includes(' '))return k.split(/\s+/).every(p=>toks.some(w=>w.startsWith(p)));
+    if(k.length<=3)return toks.some(w=>w===k||(w.startsWith(k)&&w.length<=k.length+2));
+    return toks.some(w=>w.startsWith(k)||(k.length>=6&&lev1(w.slice(0,k.length),k)))};
+  return KB.topics.map(t=>({id:t.id,sc:t.kw.filter(hit).length})).filter(x=>x.sc).sort((a,b)=>b.sc-a.sc).map(x=>x.id)}
+
+/* ---------- маршрут вопросов ---------- */
+const key=(tid,qid)=>tid+'.'+qid;
+function flow(){const out=[];
+  S.topics.forEach(tid=>{const t=TM[tid];if(!t)return;t.q.forEach(q=>{if(q.cond){const a=arr(S.ans[key(tid,q.cond.q)]);if(!a.some(x=>q.cond.a.includes(x)))return}out.push({tid,q})})});
+  KB.common.forEach(q=>out.push({tid:'common',q}));return out}
+const optOf=(q,c)=>q.o.find(o=>o.c===c);
+
+/* ---------- итог ---------- */
+function result(){const F=flow();
+  const cards=S.topics.filter(id=>TM[id]).map(tid=>{const t=TM[tid],see=[],rec=[],chk=[...(t.base||[])];
+    F.filter(f=>f.tid===tid).forEach(({q})=>arr(S.ans[key(tid,q.id)]).forEach(c=>{const o=optOf(q,c);if(!o)return;if(o.see)see.push(o.see);if(o.rec)rec.push(o.rec);if(o.chk)chk.push(o.chk)}));
+    return {t,see:uniq(see),rec:uniq(rec),chk:uniq(chk)}});
+  return {cards,chk:uniq(cards.flatMap(c=>c.chk))}}
+const ansText=(tid,q)=>arr(S.ans[key(tid,q.id)]).map(c=>(optOf(q,c)||{}).t).filter(Boolean).join(', ');
+const commonAns=id=>{const q=KB.common.find(x=>x.id===id);return q?ansText('common',q):''};
+function firstName(){const p=S.fio.trim().split(/\s+/);return p.length>=2&&p.length<=3?p[1]:(p[0]||'')}
+function resultText(){const R=result(),nm=firstName();
+  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Как обещал, коротко по вашей задаче.\n`;
+  R.cards.forEach(c=>{t+=`\n${c.t.n.toUpperCase()}\n${c.t.intro||''}\n`;if(c.see.length)t+=`\nЧто мы видим:\n${c.see.map(x=>'— '+x).join('\n')}\n`;if(c.rec.length)t+=`\nЧто рекомендуем:\n${c.rec.map(x=>'— '+x).join('\n')}\n`;if(c.t.demo)t+=`\nНа демо покажем: ${c.t.demo.charAt(0).toLowerCase()+c.t.demo.slice(1)}.\n`});
+  if(R.chk.length)t+=`\nЧто подготовить к встрече:\n${R.chk.map(x=>'— '+x).join('\n')}\n`;
+  t+=`\nПредлагаю созвониться и выбрать время демо на ваших процессах.\n\n${ME.name}\n${ME.pos}, «Первый Бит», офис Спортивная\n${ME.phone}\n${ME.email}`+(ME.tgUser?`\nTelegram: ${ME.tgUser}`:'');return t}
+const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+function leadLink(){const o={};['text','topics','ans','company','fio','pos','email','phone'].forEach(k=>{const v=S[k];if(v&&(typeof v!=='object'||Object.keys(v).length))o[k]=v});return (ME.link||location.href).split('#')[0].split('?')[0]+'#lead='+b64e(JSON.stringify(o))}
+function summaryText(){const line=(k,v)=>v?`${k}: ${v}\n`:'',F=flow();
+  let t=`ЛИД · ${EVENT}\nИсточник: ${CLIENT()||S.src==='client'?'клиент сам, по QR':'разговор, '+ME.name}\n\n`;
+  t+=line('Компания',S.company)+line('Кто',[S.fio,S.pos].filter(Boolean).join(', '))+line('Контакты',[S.phone,S.email].filter(Boolean).join(' · '));
+  t+=line('Своими словами',S.text)+line('Темы',S.topics.map(id=>(TM[id]||{}).n).filter(Boolean).join('; '));
+  const qa=F.filter(f=>f.tid!=='common').map(({tid,q})=>{const a=ansText(tid,q);return a?`— ${q.t} ${a}`:''}).filter(Boolean);
+  if(qa.length)t+='\nОтветы:\n'+qa.join('\n')+'\n';
+  t+='\n'+line('Когда начать',commonAns('t1'))+line('Полезно после форума',commonAns('t2'))+line('Комментарий',S.comment);
+  t+='\nОткрыть лид: '+leadLink()+'\n';return t}
+const clientMsg=()=>'Здравствуйте! Пришлите, пожалуйста, чек-лист по нашей задаче, и давайте договоримся о демо.\n\n'+summaryText();
+const mgrHref=()=>`mailto:${ME.email}?subject=${encodeURIComponent('Заявка с форума 1С:ERP'+(S.company?' — '+S.company:''))}&body=${encodeURIComponent(clientMsg())}`;
+const cliHref=()=>`mailto:${S.email}?subject=${encodeURIComponent('Материалы после форума 1С:ERP'+(S.company?' — '+S.company:''))}&body=${encodeURIComponent(resultText())}`;
+const tgHref=()=>'https://t.me/share/url?url='+encodeURIComponent(summaryText());
+const okSend=()=>S.consent&&(S.email||S.phone).trim();
+
+/* ---------- экраны ---------- */
+const inp=(k,label,type='text',ph='')=>`<label class="f">${esc(label)}<input id="i_${k}" data-k="${k}" type="${type}" value="${esc(S[k]||'')}" placeholder="${esc(ph)}"${type==='tel'?' inputmode="tel"':''}></label>`;
+const tchip=id=>`<button type="button" class="chip" data-topic="${id}" aria-pressed="${S.topics.includes(id)}">${esc(TM[id].n)}</button>`;
+function suggHTML(){const m=match(S.text).filter(id=>!S.topics.includes(id)).slice(0,4);
+  return m.length?m.map(id=>`<button type="button" data-topic="${id}"><b>+</b> ${esc(TM[id].n)}</button>`).join(''):(S.text.trim().length>3?'<p class="hint">Не нашли подходящую тему. Выберите из списка ниже, а ваш текст мы всё равно увидим.</p>':'')}
+function vPick(){
+  return `<h1>${CLIENT()?'Что хотите обсудить?':'Что обсуждаем?'}</h1><p class="hint">Напишите своими словами или выберите тему. Можно несколько.</p>
+  <textarea id="txt" placeholder="Например: простои оборудования, ремонты ведём в Excel">${esc(S.text)}</textarea>
+  <div class="sugg" id="sugg">${suggHTML()}</div>
+  ${S.topics.length?`<div class="lbl" style="margin-top:14px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Выбрано</div><div class="picked">${S.topics.map(id=>`<button type="button" data-topic="${id}">${esc(TM[id].n)} ✕</button>`).join('')}</div>`:''}
+  <h2>Частые темы</h2><div class="chips">${POPULAR.filter(id=>TM[id]).map(tchip).join('')}</div>
+  <details style="margin-top:14px"><summary>Все темы</summary><div class="chips" style="margin-top:10px">${KB.topics.map(t=>tchip(t.id)).join('')}</div></details>`}
+function vQ(){const F=flow(),f=F[S.step-1];if(!f)return vRes();const {tid,q}=f,a=arr(S.ans[key(tid,q.id)]);
+  return `<div class="qtopic">${tid==='common'?'Последний шаг':esc(TM[tid].n)}</div><h1>${esc(q.t)}</h1>${q.multi?'<p class="hint">Можно несколько</p>':''}
+  <div class="opts">${q.o.map(o=>`<button type="button" class="opt" data-ans="${esc(o.c)}" aria-pressed="${a.includes(o.c)}">${esc(o.t)}</button>`).join('')}</div>`}
+function vRes(){const R=result(),cl=CLIENT();
+  return `<h1>${cl?'Что получилось':'Итог для клиента'}</h1><p class="hint">Предварительно, по ответам. Подробно разберём на демо.</p>
+  ${R.cards.map(c=>`<div class="card"><h2>${esc(c.t.n)}</h2>${c.t.intro?`<p>${esc(c.t.intro)}</p>`:''}
+    ${c.see.length?`<h3>Что мы видим</h3><ul>${c.see.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+    ${c.rec.length?`<h3>Что рекомендуем</h3><ul>${c.rec.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+    ${c.t.demo?`<h3>На демо покажем</h3><p>${esc(c.t.demo)}</p>`:''}</div>`).join('')}
+  ${R.chk.length?`<div class="card"><h2>Что подготовить к встрече</h2><ul class="chk">${R.chk.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
+  <h2 style="font-size:18px;margin-top:24px">${cl?'Куда прислать чек-лист':'Контакты'}</h2>
+  <div class="stack">${inp('fio',cl?'Имя':'ФИО')}${inp('company','Компания')}${cl?'':inp('pos','Должность')}${inp('email','Почта','email')}${inp('phone','Телефон или Telegram')}</div>
+  ${cl?`<label class="consent"><input type="checkbox" id="consent" ${S.consent?'checked':''}><span>Согласен на обработку персональных данных по <a href="${esc(ME.policy||'https://www.1cbit.ru/privacy/')}" target="_blank" rel="noopener">политике «Первого Бита»</a></span></label>
+    <a class="btn primary" id="mgrMail" href="${esc(mgrHref())}" style="width:100%;margin-top:12px;padding:16px">Получить чек-лист и записаться на демо</a>
+    <p class="hint" style="margin-top:8px">Откроется почта с готовым письмом, нажмите «Отправить». ${esc(ME.name.split(' ')[0])} пришлёт чек-лист и предложит время демо.</p>
+    <p class="hint">Удобнее в Telegram? <button class="link" type="button" id="tgSend">Отправить в Telegram</button></p>`
+  :`<div style="margin-top:10px"><label class="f">Комментарий для себя<textarea id="i_comment" data-k="comment">${esc(S.comment)}</textarea></label></div>
+    <div class="stack" style="margin-top:14px">
+      <a class="btn big" id="cliMail" href="${esc(cliHref())}"><span class="n">1</span><span>Письмо клиенту<small>Итог и чек-лист готовым текстом</small></span></a>
+      <a class="btn big" id="tgBtn" href="${esc(tgHref())}" target="_blank" rel="noopener"><span class="n">2</span><span>Выжимка в Telegram<small>Для себя или офиса</small></span></a>
+    </div>
+    <details><summary>Текст письма</summary><pre class="msg" id="emailPre">${esc(resultText())}</pre><button class="btn sm" type="button" data-copy="emailPre">Скопировать</button></details>
+    <details><summary>Выжимка</summary><pre class="msg" id="sumPre">${esc(summaryText())}</pre><button class="btn sm" type="button" data-copy="sumPre">Скопировать</button></details>`}`}
+function vLeads(){return `<h1>Лиды</h1><p class="hint">Хранятся только на этом устройстве.</p>
+  ${LEADS.length?`<div style="margin:8px 0"><button class="btn sm" type="button" id="copyAll">Скопировать все выжимки</button></div>`:''}
+  ${LEADS.slice().reverse().map(x=>`<div class="lead"><div><b>${esc(x.company||x.fio||'Без названия')}</b><small>${esc((x.topics||[]).map(id=>(TM[id]||{}).n).join(', '))} · ${new Date(x.created).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></div>
+   <div style="display:flex;gap:6px;flex-shrink:0"><button class="btn sm" type="button" data-openlead="${x.id}">Открыть</button><button class="btn sm" type="button" data-del="${x.id}" aria-label="Удалить">✕</button></div></div>`).join('')}
+  <pre class="msg" id="allPre" hidden></pre>`}
+function vSet(){return `<h1>Настройки</h1><p class="hint">Подпись в письмах. Каждый коллега заполняет своё на своём устройстве.</p>
+  <div class="stack" style="margin-top:10px">${[['name','Имя и фамилия'],['pos','Должность'],['phone','Телефон'],['email','Email'],['tgUser','Telegram-ник'],['link','Ссылка на эту страницу (если пусто, берётся текущая)'],['policy','Ссылка на политику обработки ПДн']].map(([k,l])=>`<label class="f">${l}<input data-me="${k}" value="${esc(ME[k])}"></label>`).join('')}</div>
+  <h2>QR для клиентов</h2><p class="hint">Открывает форму для самостоятельного заполнения.</p><div id="qr"></div><p class="hint" id="qrUrl"></p>
+  <p class="hint" style="margin-top:14px">Прежняя анкета со схемами: <a href="v33/" style="color:var(--magenta)">открыть архивную версию</a>.</p>`}
+
+function render(keep){
+  const y=window.scrollY,F=flow(),N=F.length+1;if(S.step>N)S.step=N;
+  $('#nav').innerHTML=CLIENT()?'':`<button id="navNew" type="button">Новый</button><button id="navLeads" type="button">Лиды${LEADS.length?' ('+LEADS.length+')':''}</button><button id="navSet" type="button" aria-label="Настройки">⚙</button>`;
+  $('#prog').firstElementChild.style.width=view==='form'?Math.round(100*S.step/N)+'%':'0';
+  $('#app').innerHTML=view==='leads'?vLeads():view==='set'?vSet():S.step===0?vPick():S.step<N?vQ():vRes();
+  const back=S.step?'<button class="btn" type="button" id="prev">Назад</button>':'';
+  $('#barIn').innerHTML=view!=='form'?`<button class="btn primary" type="button" id="toForm">К форме</button>`
+    :S.step===0?`<button class="btn primary" type="button" id="next">${S.topics.length?'Дальше':'Выберите тему'}</button>`
+    :S.step<N?`${back}<button class="btn primary" type="button" id="next">${F[S.step-1]&&arr(S.ans[key(F[S.step-1].tid,F[S.step-1].q.id)]).length?'Дальше':'Пропустить'}</button>`
+    :`${back}${CLIENT()?'':'<button class="btn primary" type="button" id="newLead">Следующий клиент</button>'}`;
+  if(view==='set')drawQR();
+  window.scrollTo(0,keep?y:0);
+}
+function drawQR(){const el=$('#qr');if(!el)return;const base=ME.link||(/^https?:/.test(location.href)?location.href:'');const url=base.split('#')[0].split('?')[0]+'#c';if(!base){el.textContent='Укажи ссылку на страницу';return}$('#qrUrl').textContent=url;el.innerHTML='';try{new QRCode(el,{text:url,width:200,height:200})}catch(e){el.textContent='QR не загрузился'}}
+function refreshLinks(){const m=$('#mgrMail');if(m)m.href=mgrHref();const c=$('#cliMail');if(c)c.href=cliHref();const t=$('#tgBtn');if(t)t.href=tgHref();
+  const e=$('#emailPre');if(e)e.textContent=resultText();const s=$('#sumPre');if(s)s.textContent=summaryText()}
+function copy(el){const t=el.textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Скопировано'),()=>toast('Не удалось скопировать'))}catch(e){toast('Не удалось скопировать')}}
+function importLead(h){try{const o=JSON.parse(b64d(h));S=Object.assign(blank(),o,{src:'client'});S.step=flow().length+1;view='form';saveLead();save();history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>toast('Лид клиента загружен'),300)}catch(e){toast('Ссылка повреждена')}}
+
+document.addEventListener('click',e=>{
+  if(CLIENT()&&e.target.closest('#mgrMail,#tgSend')&&!okSend()){e.preventDefault();toast(!S.consent?'Отметьте согласие на обработку данных':'Укажите почту или телефон');return}
+  if(CLIENT()&&e.target.closest('#mgrMail'))setTimeout(()=>toast('Не забудьте нажать «Отправить» в почте'),600);
+  const tp=e.target.closest('[data-topic]');
+  if(tp){const id=tp.dataset.topic,i=S.topics.indexOf(id);i>=0?S.topics.splice(i,1):S.topics.push(id);save();render(true);return}
+  const an=e.target.closest('[data-ans]');
+  if(an){const f=flow()[S.step-1];if(!f)return;const k=key(f.tid,f.q.id),c=an.dataset.ans;let a=arr(S.ans[k]).slice();
+    if(f.q.multi){const i=a.indexOf(c);i>=0?a.splice(i,1):a.push(c);S.ans[k]=a;save();render(true)}
+    else{S.ans[k]=[c];save();render(true);setTimeout(()=>{S.step++;save();saveLead();render()},180)}return}
+  const b=e.target.closest('button');if(!b)return;const id=b.id;
+  if(id==='next'){if(S.step===0&&!S.topics.length){const m=match(S.text);if(m.length){S.topics=m.slice(0,2);toast('Взяли темы по вашему тексту, можно поправить');render(true);return}toast('Выберите хотя бы одну тему');return}S.step++;save();saveLead();render()}
+  else if(id==='prev'){S.step=Math.max(0,S.step-1);render()}
+  else if(id==='navNew'||id==='newLead'){S=blank();view='form';save();render()}
+  else if(id==='navLeads'){view='leads';render()}
+  else if(id==='navSet'){view='set';render()}
+  else if(id==='toForm'){view='form';render()}
+  else if(id==='tgSend'){const t=clientMsg(),u=(ME.tgUser||'').replace(/^@/,'').trim();try{navigator.clipboard.writeText(t).then(()=>toast('Текст скопирован, вставьте его в чат'),()=>{})}catch(e){}setTimeout(()=>{location.href=u?'https://t.me/'+u:'https://t.me/share/url?url='+encodeURIComponent(t)},400)}
+  else if(b.dataset.copy)copy($('#'+b.dataset.copy));
+  else if(id==='copyAll'){const pre=$('#allPre'),cur=S;pre.textContent=LEADS.map(x=>{S=Object.assign(blank(),x);return summaryText()}).join('\n\n———\n\n');S=cur;pre.hidden=false;copy(pre)}
+  else if(b.dataset.openlead){S=Object.assign(blank(),JSON.parse(JSON.stringify(LEADS.find(x=>String(x.id)===b.dataset.openlead))));S.step=flow().length+1;view='form';render()}
+  else if(b.dataset.del){if(b.dataset.sure){LEADS=LEADS.filter(x=>String(x.id)!==b.dataset.del);store.set('kb_leads',LEADS);render(true)}else{b.dataset.sure='1';b.textContent='Удалить?'}}
+});
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.id==='txt'){S.text=t.value;save();$('#sugg').innerHTML=suggHTML();return}
+  if(t.dataset.k){S[t.dataset.k]=t.value;save();saveLead();refreshLinks()}
+  if(t.dataset.me){ME[t.dataset.me]=t.value;store.set('fm_me',ME);if(t.dataset.me==='link')drawQR()}
+});
+document.addEventListener('change',e=>{if(e.target.id==='consent'){S.consent=e.target.checked;save()}});
+window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#lead=')){importLead(location.hash.slice(6));render();return}S=blank();view='form';render()});
+const dr=store.get('kb_draft',null);
+if(!CLIENT()&&dr&&dr.id)S=Object.assign(blank(),dr);
+if(CLIENT())S.src='client';
+if(location.hash.startsWith('#lead='))importLead(location.hash.slice(6));
+render();
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body></html>
