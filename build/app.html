@@ -24,6 +24,57 @@
 .card li{margin:3px 0}
 .card p{margin:4px 0}
 .chk li{list-style:none;position:relative;padding-left:4px}
+/* макеты экранов */
+.mk{margin:10px 0 4px;border:1px solid #c9cfd4;border-radius:8px;overflow:hidden;background:#fff;color:#1d262d;font-size:12px;line-height:1.35;box-shadow:0 1px 3px rgba(17,36,52,.08)}
+.mk-t{display:flex;align-items:center;gap:8px;background:#eef0f2;border-bottom:1px solid #d6dbdf;padding:6px 10px;font-weight:600;font-size:12px}
+.mk-t i{width:8px;height:8px;border-radius:50%;background:#c9cfd4;display:inline-block}
+.mk-t span{margin-left:auto;font-weight:400;color:#6b7680}
+.mk-b{padding:8px 10px;overflow-x:auto}
+.mk-bar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.mk-bar b{font-weight:500;border:1px solid #c9cfd4;border-radius:4px;padding:2px 8px;background:#f7f8f9;white-space:nowrap}
+.mk-bar b.on{background:#ffe27a;border-color:#e0bd3a}
+.mk table{border-collapse:collapse;width:100%;min-width:420px}
+.mk th{background:#f2f4f5;font-weight:600;text-align:left;padding:4px 6px;border:1px solid #e1e5e8;white-space:nowrap}
+.mk td{padding:4px 6px;border:1px solid #e9ecee;white-space:nowrap}
+.mk td.n{text-align:right;font-variant-numeric:tabular-nums}
+.mk tr.sel td{background:#fff6cc}
+.mk .g{color:#1a8a52}.mk .r{color:#c62828}.mk .m{color:#6b7680}
+.mk .c{display:inline-block;min-width:22px;text-align:center;border-radius:3px;padding:1px 3px;font-size:11px;font-weight:600}
+.c-plan{background:#e3eefc;color:#1f5fae}.c-done{background:#dcf3e6;color:#1a8a52}.c-late{background:#fde2e2;color:#c62828}
+.mk .hb{display:inline-block;height:8px;border-radius:2px;background:#9fb3c8;vertical-align:middle}
+.mk .hb.r{background:#e57373}
+.mk-legend{margin-top:6px;color:#6b7680;font-size:11px;display:flex;gap:10px;flex-wrap:wrap}
+.mk-cap{font-size:11px;color:var(--muted);margin:2px 0 10px}
+.mk-ph{width:220px;margin:6px auto;border:6px solid #1d262d;border-radius:22px;overflow:hidden;background:#fff}
+.mk-ph .top{background:#1d262d;color:#fff;padding:6px 10px;font-size:11px;font-weight:600}
+.mk-ph .it{border-bottom:1px solid #eceff1;padding:7px 10px}
+.mk-ph .it small{display:block;color:#6b7680;font-size:10px}
+.mk-ph .photo{height:54px;margin:6px 10px;border-radius:6px;background:repeating-linear-gradient(45deg,#d9dee2,#d9dee2 6px,#e7eaed 6px,#e7eaed 12px);display:flex;align-items:center;justify-content:center;color:#6b7680;font-size:10px}
+.mk-ph .btnp{margin:8px 10px;background:#ffe27a;border-radius:6px;text-align:center;padding:7px;font-weight:600}
+.mk-tabs{display:flex;gap:0;border-bottom:1px solid #d6dbdf;margin:6px 0}
+.mk-tabs b{padding:4px 10px;font-weight:500;color:#6b7680}
+.mk-tabs b.on{color:#1d262d;border-bottom:2px solid #e0bd3a}
+.mk-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:4px 0}
+.mk-kv span{color:#6b7680}
+.mk-gantt{position:relative;height:14px;background:#f2f4f5;border-radius:2px}
+.mk-gantt i{position:absolute;top:2px;height:10px;border-radius:2px;background:#7ea6d8}
+.mk-gantt i.late{background:#e57373}
+.mk-day{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;min-width:420px}
+.mk-day div{border:1px solid #e1e5e8;border-radius:4px;padding:4px;font-size:11px}
+.mk-day div.gap{background:#fde2e2;border-color:#f3b3b3}
+.mk-day b{display:block;font-size:10px;color:#6b7680;font-weight:500}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mk{box-shadow:none}}
+
+.lvrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.lvrow:last-child{border-bottom:none}
+.lvrow small{display:block;color:var(--muted);font-size:12px}
+.lv{display:inline-flex;gap:3px}.lv i{width:20px;height:8px;border-radius:2px;background:var(--line)}
+.lv.lo i.on{background:var(--magenta)}.lv.hi i.on{background:var(--teal,#25C6B3)}
+.next{border-left:3px solid var(--magenta);padding:2px 0 2px 12px;margin:12px 0}
+.next p{margin:3px 0}.next .now{color:var(--muted);font-size:14px}
+details.card>summary{list-style:none;cursor:pointer}details.card>summary::-webkit-details-marker{display:none}
+details.card>summary h2::after{content:" ▾";color:var(--muted);font-weight:400}
+details.card[open]>summary h2::after{content:" ▴"}
 .chk li::before{content:"";position:absolute;left:-18px;top:5px;width:12px;height:12px;border:1.5px solid var(--magenta);border-radius:3px}
 </style>
 </head><body>
@@ -49,7 +100,7 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 let ME=Object.assign({name:'Иван Овчинников',pos:'Менеджер по работе с клиентами',phone:'+7 917 576 76 59',email:'ISOvchinnikov@1cbit.ru',tgUser:'@ovchi_21',link:'',policy:''},store.get('fm_me',{}));
 if(!ME.tgUser)ME.tgUser='@ovchi_21';
 let LEADS=store.get('kb_leads',[]);
-const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',text:'',topics:[],ans:{},step:0,company:'',fio:'',pos:'',email:'',phone:'',comment:'',consent:false});
+const blank=()=>({id:Date.now(),created:new Date().toISOString(),src:'',text:'',topics:[],ans:{},demos:[],step:0,company:'',fio:'',pos:'',email:'',phone:'',comment:'',consent:false});
 let S=blank(),view='form';
 const CLIENT=()=>location.hash==='#c';
 const $=s=>document.querySelector(s);
@@ -72,41 +123,142 @@ function match(text){const toks=norm(text).split(/\s+/).filter(Boolean);if(!toks
 /* ---------- маршрут вопросов ---------- */
 const key=(tid,qid)=>tid+'.'+qid;
 function flow(){const out=[];
-  S.topics.forEach(tid=>{const t=TM[tid];if(!t)return;t.q.forEach(q=>{if(q.cond){const a=arr(S.ans[key(tid,q.cond.q)]);if(!a.some(x=>q.cond.a.includes(x)))return}out.push({tid,q})})});
+  const short=S.topics.length>1;
+  S.topics.forEach(tid=>{const t=TM[tid];if(!t)return;const hasMain=t.q.some(q=>q.main);t.q.forEach((q,qi)=>{if(short&&(hasMain?!q.main:qi>1))return;if(q.cond){const a=arr(S.ans[key(tid,q.cond.q)]);if(!a.some(x=>q.cond.a.includes(x)))return}out.push({tid,q})})});
   KB.common.forEach(q=>out.push({tid:'common',q}));return out}
 const optOf=(q,c)=>q.o.find(o=>o.c===c);
 
 /* ---------- итог ---------- */
+const LVL=['','по факту','частично','в основном','управляемо'];
+function scoresOf(tid){const t=TM[tid];if(!t||!t.dims)return null;const sc={},now={};
+  t.q.forEach(q=>arr(S.ans[key(tid,q.id)]).forEach(c=>{const o=optOf(q,c);if(!o||!o.imp)return;Object.entries(o.imp).forEach(([d,v])=>{if(sc[d]===undefined||v<sc[d]){sc[d]=v;now[d]=o.t}})}));
+  return t.dims.map(d=>Object.assign({},d,{score:sc[d.id]??null,now:now[d.id]||''}))}
 function result(){const F=flow();
   const cards=S.topics.filter(id=>TM[id]).map(tid=>{const t=TM[tid],see=[],rec=[],chk=[...(t.base||[])];
     F.filter(f=>f.tid===tid).forEach(({q})=>arr(S.ans[key(tid,q.id)]).forEach(c=>{const o=optOf(q,c);if(!o)return;if(o.see)see.push(o.see);if(o.rec)rec.push(o.rec);if(o.chk)chk.push(o.chk)}));
-    return {t,see:uniq(see),rec:uniq(rec),chk:uniq(chk)}});
-  return {cards,chk:uniq(cards.flatMap(c=>c.chk))}}
+    const dims=scoresOf(tid),known=dims?dims.filter(d=>d.score!==null).sort((a,b)=>a.score-b.score):[];
+    let weak=known.filter(d=>d.score<=2).slice(0,2);if(!weak.length&&known.length)weak=known.slice(0,1);
+    const lvl=id=>{const d=(dims||[]).find(x=>x.id===id);return d&&d.score!==null?d.score:null};
+    const err=(t.err||[]).filter(e=>!e.cond.length||e.cond.some(c=>{const v=lvl(c.d);return v!==null&&v<=c.max})).slice(0,3);
+    return {t,dims,weak,err,demo:(weak[0]&&weak[0].demo)||t.demo,see:uniq(see),rec:uniq(rec),chk:uniq(chk)}});
+  const links=(KB.links||[]).filter(l=>S.topics.includes(l.a)&&S.topics.includes(l.b));
+  return {cards,links,chk:uniq(cards.flatMap(c=>c.chk))}}
+function demoOpts(){const R=result();return [...R.cards.map(c=>['d:'+c.t.id,c.t.n,c.demo]),...R.links.map(l=>['l:'+l.a+'-'+l.b,'Связанный сценарий',l.demo])]}
 const ansText=(tid,q)=>arr(S.ans[key(tid,q.id)]).map(c=>(optOf(q,c)||{}).t).filter(Boolean).join(', ');
 const commonAns=id=>{const q=KB.common.find(x=>x.id===id);return q?ansText('common',q):''};
 function firstName(){const p=S.fio.trim().split(/\s+/);return p.length>=2&&p.length<=3?p[1]:(p[0]||'')}
+const demoChosen=()=>demoOpts().filter(o=>arr(S.demos).includes(o[0]));
 function resultText(){const R=result(),nm=firstName();
-  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Как обещал, коротко по вашей задаче.\n`;
-  R.cards.forEach(c=>{t+=`\n${c.t.n.toUpperCase()}\n${c.t.intro||''}\n`;if(c.see.length)t+=`\nЧто мы видим:\n${c.see.map(x=>'— '+x).join('\n')}\n`;if(c.rec.length)t+=`\nЧто рекомендуем:\n${c.rec.map(x=>'— '+x).join('\n')}\n`;if(c.t.demo)t+=`\nНа демо покажем: ${c.t.demo.charAt(0).toLowerCase()+c.t.demo.slice(1)}.\n`});
-  if(R.chk.length)t+=`\nЧто подготовить к встрече:\n${R.chk.map(x=>'— '+x).join('\n')}\n`;
-  t+=`\nПредлагаю созвониться и выбрать время демо на ваших процессах.\n\n${ME.name}\n${ME.pos}, «Первый Бит», офис Спортивная\n${ME.phone}\n${ME.email}`+(ME.tgUser?`\nTelegram: ${ME.tgUser}`:'');return t}
+  let t=`${nm?nm+', добрый день':'Добрый день'}!\n\nСпасибо за разговор на ${EVENT_P}. Как обещал, коротко по вашей задаче. Полный разбор с картинкой: ${reportLink()}\n`;
+  R.cards.forEach(c=>{t+=`\n${c.t.n.toUpperCase()}\n`;
+    if(c.dims&&c.dims.some(d=>d.score!==null)){t+='Где вы сейчас:\n'+c.dims.filter(d=>d.score!==null).map(d=>`— ${d.n}: ${d.score} из 4`).join('\n')+'\n';
+      c.weak.forEach(d=>{t+=`\n${d.n}. Следующий уровень: ${d.next}\n`});
+      if(c.err.length)t+='\nЧастые ошибки в такой ситуации:\n'+c.err.map(e=>'— '+e.t).join('\n')+'\n'}
+    else{if(c.t.intro)t+=c.t.intro+'\n';if(c.rec.length)t+='Что рекомендуем:\n'+c.rec.map(x=>'— '+x).join('\n')+'\n'}});
+  if(R.links.length)t+='\nКак ваши задачи связаны:\n'+R.links.map(l=>'— '+l.t).join('\n')+'\n';
+  const dc=demoChosen();t+=dc.length?`\nНа демо покажем:\n${dc.map(o=>'— '+o[2]).join('\n')}\n`:'';
+  t+=`\nПредлагаю созвониться и выбрать время демо.\n\n${ME.name}\n${ME.pos}, «Первый Бит», офис Спортивная\n${ME.phone}\n${ME.email}`+(ME.tgUser?`\nTelegram: ${ME.tgUser}`:'');return t}
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
-function leadLink(){const o={};['text','topics','ans','company','fio','pos','email','phone'].forEach(k=>{const v=S[k];if(v&&(typeof v!=='object'||Object.keys(v).length))o[k]=v});return (ME.link||location.href).split('#')[0].split('?')[0]+'#lead='+b64e(JSON.stringify(o))}
-function summaryText(){const line=(k,v)=>v?`${k}: ${v}\n`:'',F=flow();
+function packed(fields){const o={};fields.forEach(k=>{const v=S[k];if(v&&(typeof v!=='object'||Object.keys(v).length))o[k]=v});return b64e(JSON.stringify(o))}
+const baseUrl=()=>(ME.link||location.href).split('#')[0].split('?')[0];
+const leadLink=()=>baseUrl()+'#lead='+packed(['text','topics','ans','demos','company','fio','pos','email','phone']);
+const reportLink=()=>baseUrl()+'#r='+packed(['topics','ans','demos','company']);
+function summaryText(){const line=(k,v)=>v?`${k}: ${v}\n`:'',F=flow(),R=result();
   let t=`ЛИД · ${EVENT}\nИсточник: ${CLIENT()||S.src==='client'?'клиент сам, по QR':'разговор, '+ME.name}\n\n`;
   t+=line('Компания',S.company)+line('Кто',[S.fio,S.pos].filter(Boolean).join(', '))+line('Контакты',[S.phone,S.email].filter(Boolean).join(' · '));
   t+=line('Своими словами',S.text)+line('Темы',S.topics.map(id=>(TM[id]||{}).n).filter(Boolean).join('; '));
+  R.cards.forEach(c=>{if(c.dims&&c.dims.some(d=>d.score!==null))t+=line(c.t.n,c.dims.filter(d=>d.score!==null).map(d=>`${d.n.toLowerCase()} ${d.score}/4`).join(', '))});
   const qa=F.filter(f=>f.tid!=='common').map(({tid,q})=>{const a=ansText(tid,q);return a?`— ${q.t} ${a}`:''}).filter(Boolean);
   if(qa.length)t+='\nОтветы:\n'+qa.join('\n')+'\n';
-  t+='\n'+line('Когда начать',commonAns('t1'))+line('Полезно после форума',commonAns('t2'))+line('Комментарий',S.comment);
+  t+='\n'+line('Когда начать',commonAns('t1'))+line('Хотят демо',demoChosen().map(o=>o[1]==='Связанный сценарий'?'связанный сценарий: '+o[2]:o[1]).join('; '))+line('Комментарий',S.comment);
   t+='\nОткрыть лид: '+leadLink()+'\n';return t}
-const clientMsg=()=>'Здравствуйте! Пришлите, пожалуйста, чек-лист по нашей задаче, и давайте договоримся о демо.\n\n'+summaryText();
+const clientMsg=()=>'Здравствуйте! Давайте договоримся о демо. Мой разбор: '+reportLink()+'\n\n'+summaryText();
 const mgrHref=()=>`mailto:${ME.email}?subject=${encodeURIComponent('Заявка с форума 1С:ERP'+(S.company?' — '+S.company:''))}&body=${encodeURIComponent(clientMsg())}`;
-const cliHref=()=>`mailto:${S.email}?subject=${encodeURIComponent('Материалы после форума 1С:ERP'+(S.company?' — '+S.company:''))}&body=${encodeURIComponent(resultText())}`;
+const cliHref=()=>`mailto:${S.email}?subject=${encodeURIComponent('Разбор задачи после форума 1С:ERP'+(S.company?' — '+S.company:''))}&body=${encodeURIComponent(resultText())}`;
 const tgHref=()=>'https://t.me/share/url?url='+encodeURIComponent(summaryText());
 const okSend=()=>S.consent&&(S.email||S.phone).trim();
 
+/* ---------- макеты экранов системы (упрощённо) ---------- */
+const CO=()=>S.company?esc(S.company):'Ваша компания';
+const win=(title,body,right='')=>`<div class="mk"><div class="mk-t"><i></i><i></i><i></i>${esc(title)}<span>${right||CO()}</span></div><div class="mk-b">${body}</div></div>`;
+const cap='<p class="mk-cap">Пример экрана, упрощённо. На демо покажем в системе.</p>';
+const MOCK={
+'toir.plan':()=>{const M=['Янв','Фев','Мар','Апр','Май','Июн'],R=[['Пресс П-250','ТО','ТО','ТР','ТО','ТО','КР'],['Компрессор К-4','ТО','','ТО','','ТО',''],['Линия розлива №2','ТР','ТО','ТО','ТР','ТО','ТО'],['Котёл КВ-1,5','','ТО','','ТО','','ТР']],st=(i,j)=>j<2?'c-done':(j===2&&i===2?'c-late':'c-plan');
+  return win('График ППР на 2027 год',`<div class="mk-bar"><b class="on">Год</b><b>Полугодие</b><b>Месяц</b><b>Сформировать наряды</b></div>
+  <table><tr><th>Оборудование</th>${M.map(m=>`<th>${m}</th>`).join('')}</tr>${R.map((r,i)=>`<tr${i===2?' class="sel"':''}><td>${r[0]}</td>${r.slice(1).map((v,j)=>`<td>${v?`<span class="c ${st(i,j)}">${v}</span>`:''}</td>`).join('')}</tr>`).join('')}</table>
+  <div class="mk-legend"><span><span class="c c-done">ТО</span> выполнено</span><span><span class="c c-plan">ТО</span> запланировано</span><span><span class="c c-late">ТО</span> просрочено</span><span>ТО — обслуживание, ТР — текущий, КР — капитальный ремонт</span></div>`)+cap},
+'toir.reg':()=>win('Пресс П-250 · паспорт',`<div class="mk-tabs"><b class="on">Основное</b><b>Ремонты</b><b>Отказы</b><b>ЗИП</b><b>Документы</b></div>
+  <div class="mk-kv"><span>Инв. номер</span><b>000154</b><span>Расположение</span><b>Цех №1 / Участок штамповки</b><span>Критичность</span><b class="r">А — останавливает выпуск</b><span>Наработка</span><b>12 480 ч, с последнего ремонта 1 950 ч</b></div>
+  <table style="margin-top:6px"><tr><th>Дата</th><th>Событие</th><th>Причина</th><th class="n">Простой, ч</th><th class="n">Затраты, ₽</th></tr>
+  <tr><td>14.03</td><td>Аварийный ремонт</td><td>Износ уплотнений</td><td class="n r">16</td><td class="n">184 300</td></tr>
+  <tr><td>02.02</td><td>ТО-2</td><td>По графику</td><td class="n">4</td><td class="n">21 700</td></tr>
+  <tr><td>11.12</td><td>Текущий ремонт</td><td>Вибрация привода</td><td class="n">9</td><td class="n">97 450</td></tr></table>`)+cap,
+'toir.zip':()=>win('Потребность в ЗИП по графику ремонтов',`<div class="mk-bar"><b class="on">Март–май</b><b>Создать заявку на закупку</b></div>
+  <table><tr><th>Запчасть</th><th>Для ремонта</th><th class="n">Нужно</th><th class="n">На складе</th><th class="n">Закупить</th><th>Срок</th></tr>
+  <tr><td>Уплотнение гидроцилиндра</td><td>Пресс П-250, ТР</td><td class="n">4</td><td class="n">1</td><td class="n r">3</td><td>до 10.04</td></tr>
+  <tr><td>Подшипник 6312</td><td>Компрессор К-4, ТО</td><td class="n">2</td><td class="n">6</td><td class="n g">—</td><td></td></tr>
+  <tr class="sel"><td>Ремень привода B-1250</td><td>Линия №2, ТР</td><td class="n">3</td><td class="n">0</td><td class="n r">3</td><td>до 25.03</td></tr></table>
+  <div class="mk-legend"><span>Неликвиды на складе: 214 позиций без движения больше года</span></div>`)+cap,
+'toir.mob':()=>`<div class="mk-ph"><div class="top">Обход · Цех №1</div>
+  <div class="it">✓ Пресс П-250<small>Осмотр выполнен 08:40</small></div>
+  <div class="it" style="background:#fff6cc">⚠ Компрессор К-4<small>Дефект: посторонний шум, утечка масла</small></div>
+  <div class="photo">фото дефекта</div>
+  <div class="it">Критичность: высокая<small>Наряд → бригада механиков</small></div>
+  <div class="btnp">Зарегистрировать дефект</div></div>`+cap,
+'toir.cost':()=>{const R=[['Пресс П-250',29,860],['Линия розлива №2',21,640],['Компрессор К-4',7,210],['Котёл КВ-1,5',3,120]];
+  return win('Затраты и простои по оборудованию · 2026',`<table><tr><th>Оборудование</th><th>Простои, ч</th><th class="n">Затраты, тыс. ₽</th><th>Основная причина</th></tr>
+  ${R.map((r,i)=>`<tr${i===0?' class="sel"':''}><td>${r[0]}</td><td><span class="hb${r[1]>20?' r':''}" style="width:${r[1]*3}px"></span> ${r[1]}</td><td class="n">${r[2]}</td><td>${['Износ уплотнений','Ремень привода','Утечки масла','—'][i]}</td></tr>`).join('')}</table>
+  <div class="mk-legend"><span>Затраты собираются из нарядов и списаний, без ручного свода</span></div>`)+cap},
+'budget.model':()=>win('Структура бюджета · версия «План 2027 v2»',`<div class="mk-bar"><b>План 2027 v1</b><b class="on">План 2027 v2 · утверждена</b><b>Прогноз</b></div>
+  <table><tr><th>Статья</th><th>ЦФО</th><th class="n">Год, тыс. ₽</th><th>Кто утвердил</th></tr>
+  <tr><td>▾ Операционные расходы</td><td></td><td class="n">184 200</td><td></td></tr>
+  <tr><td>&nbsp;&nbsp;Ремонт и обслуживание</td><td>Главный механик</td><td class="n">24 600</td><td>Фин. директор, 12.12</td></tr>
+  <tr class="sel"><td>&nbsp;&nbsp;Сырьё и материалы</td><td>Производство</td><td class="n">112 900</td><td>Фин. директор, 12.12</td></tr>
+  <tr><td>&nbsp;&nbsp;Логистика</td><td>Коммерческая служба</td><td class="n">46 700</td><td class="m">на согласовании</td></tr></table>`)+cap,
+'budget.coll':()=>win('Бюджетная кампания 2027',`<table><tr><th>ЦФО</th><th>Ответственный</th><th>Статус</th><th>Срок</th></tr>
+  <tr><td>Производство</td><td>Начальник производства</td><td class="g">Согласован</td><td>01.12</td></tr>
+  <tr><td>Главный механик</td><td>Главный механик</td><td class="g">Согласован</td><td>01.12</td></tr>
+  <tr class="sel"><td>Коммерческая служба</td><td>Коммерческий директор</td><td>На согласовании у фин. директора</td><td>05.12</td></tr>
+  <tr><td>АХО</td><td>Начальник АХО</td><td class="r">Не сдан, срок прошёл</td><td>01.12</td></tr></table>
+  <div class="mk-legend"><span>Шаблоны рассылаются из системы, сводить файлы не нужно</span></div>`)+cap,
+'budget.pf':()=>{const R=[['Сырьё и материалы',9400,10150],['Ремонт и обслуживание',2050,2410],['Логистика',3890,3720],['ФОТ',15200,15180]];
+  return win('План-факт · март 2027',`<div class="mk-bar"><b class="on">По статьям</b><b>По ЦФО</b><b>Факт обновлён сегодня 07:00</b></div>
+  <table><tr><th>Статья</th><th class="n">План</th><th class="n">Факт</th><th class="n">Откл.</th></tr>
+  ${R.map(r=>{const d=Math.round((r[2]/r[1]-1)*100);return `<tr${d>5?' class="sel"':''}><td>${r[0]}</td><td class="n">${r[1].toLocaleString('ru-RU')}</td><td class="n">${r[2].toLocaleString('ru-RU')}</td><td class="n ${d>5?'r':d<0?'g':''}">${d>0?'+':''}${d}%</td></tr>`}).join('')}</table>
+  <div class="mk-legend"><span>тыс. ₽ · факт загружается из учёта автоматически</span></div>`)+cap},
+'budget.pay':()=>{const D=[['Пн',820,-640,4210],['Вт',300,-1900,2610],['Ср',150,-2980,-220],['Чт',2400,-700,1480],['Пт',600,-450,1630]];
+  return win('Заявка на оплату № 418',`<div class="mk-kv"><span>Получатель</span><b>ООО «ПромСнаб»</b><span>Сумма</span><b>1 250 000 ₽</b><span>Статья</span><b>Ремонт и обслуживание</b><span>Остаток лимита</span><b class="r">860 000 ₽ — превышение 390 000 ₽</b><span>Статус</span><b>На согласовании: фин. директор</b></div>
+  <div style="margin-top:8px;font-weight:600">Платёжный календарь, неделя</div>
+  <div class="mk-day" style="margin-top:4px">${D.map(d=>`<div class="${d[3]<0?'gap':''}"><b>${d[0]}</b>+${d[1]}<br>${d[2]}<br><strong>${d[3]}</strong></div>`).join('')}</div>
+  <div class="mk-legend"><span>тыс. ₽: поступления, выплаты, остаток · красным — кассовый разрыв</span></div>`)+cap},
+'prod.cost':()=>win('Себестоимость · заказ 2027-0312 · Корпус К-40',`<table><tr><th>Статья</th><th class="n">Норма, ₽</th><th class="n">Факт, ₽</th><th class="n">Откл.</th></tr>
+  <tr><td>Материалы</td><td class="n">1 840</td><td class="n">1 975</td><td class="n r">+7%</td></tr>
+  <tr><td>Работа</td><td class="n">620</td><td class="n">604</td><td class="n g">−3%</td></tr>
+  <tr><td>Амортизация и ремонты</td><td class="n">210</td><td class="n">248</td><td class="n r">+18%</td></tr>
+  <tr class="sel"><td><b>Итого на единицу</b></td><td class="n">2 670</td><td class="n"><b>2 827</b></td><td class="n r">+6%</td></tr></table>
+  <div class="mk-legend"><span>Считается после выпуска партии, без ожидания закрытия месяца</span></div>`)+cap,
+'prod.plan':()=>{const R=[['Цех №1 · штамповка',[[0,40],[45,30]],0],['Цех №2 · сварка',[[10,50]],1],['Цех №3 · покраска',[[30,35],[70,25]],0]];
+  return win('План производства · неделя 12',`<div class="mk-bar"><b class="on">По цехам</b><b>По заказам</b><b>Нехватка материалов: 2</b></div>
+  <table><tr><th style="width:150px">Участок</th><th>Пн — Вс</th></tr>${R.map(r=>`<tr><td>${r[0]}</td><td><div class="mk-gantt">${r[1].map(([a,w])=>`<i class="${r[2]?'late':''}" style="left:${a}%;width:${w}%"></i>`).join('')}</div></td></tr>`).join('')}</table>
+  <div class="mk-legend"><span>Красным — отставание от плана: сварка ждёт металл по заказу 0312</span></div>`)+cap},
+};
+const mockFor=(tid,did)=>MOCK[tid+'.'+did]?MOCK[tid+'.'+did]():'';
+
+const bar=sc=>sc===null?'<span class="hint" style="margin:0">не обсуждали</span>':`<span class="lv ${sc<=2?'lo':'hi'}">${[1,2,3,4].map(i=>`<i class="${i<=sc?'on':''}"></i>`).join('')}</span>`;
+function topicBody(c){
+  if(c.dims&&c.dims.some(d=>d.score!==null)){
+    return `<h3>Где вы сейчас</h3>${c.dims.map(d=>`<div class="lvrow"><div>${esc(d.n)}${d.now&&d.score!==null?`<small>${esc(d.now)}</small>`:''}</div>${bar(d.score)}</div>`).join('')}
+    ${c.weak.map(d=>`<div class="next"><h3 style="margin-top:0">${esc(d.n)}: следующий уровень</h3><p>${esc(d.next)}</p>${mockFor(c.t.id,d.id)}</div>`).join('')}
+    ${c.err.length?`<h3>Частые ошибки в такой ситуации</h3><ul>${c.err.map(e=>`<li>${esc(e.t)}</li>`).join('')}</ul>`:''}
+    <h3>На демо покажем</h3><p>${esc(c.demo)}</p>`}
+  return `${c.t.intro?`<p>${esc(c.t.intro)}</p>`:''}${c.rec.length?`<h3>Что рекомендуем</h3><ul>${c.rec.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${c.t.demo?`<h3>На демо покажем</h3><p>${esc(c.t.demo)}</p>`:''}`}
+function reportHTML(R){const multi=R.cards.length>1;let h='';
+  if(multi){const rows=R.cards.flatMap(c=>{const k=(c.dims||[]).filter(d=>d.score!==null).sort((a,b)=>a.score-b.score).slice(0,2);return k.map(d=>({c,d}))});
+    if(rows.length)h+=`<div class="card"><h2>Общая картина</h2><p class="hint" style="margin-top:0">Самые слабые места по каждой теме</p>${rows.map(({c,d})=>`<div class="lvrow"><div>${esc(d.n)}<small>${esc(c.t.n)}</small></div>${bar(d.score)}</div>`).join('')}</div>`;
+    if(R.links.length)h+=`<div class="card"><h2>Как ваши задачи связаны</h2><ul>${R.links.map(l=>`<li>${esc(l.t)}</li>`).join('')}</ul></div>`}
+  h+=R.cards.map(c=>multi?`<details class="card"><summary><h2>${esc(c.t.n)}</h2>${c.weak[0]?`<p class="hint" style="margin:0">Слабее всего: ${esc(c.weak[0].n.toLowerCase())}</p>`:''}</summary>${topicBody(c)}</details>`:`<div class="card"><h2>${esc(c.t.n)}</h2>${topicBody(c)}</div>`).join('');
+  return h}
 /* ---------- экраны ---------- */
 const inp=(k,label,type='text',ph='')=>`<label class="f">${esc(label)}<input id="i_${k}" data-k="${k}" type="${type}" value="${esc(S[k]||'')}" placeholder="${esc(ph)}"${type==='tel'?' inputmode="tel"':''}></label>`;
 const tchip=id=>`<button type="button" class="chip" data-topic="${id}" aria-pressed="${S.topics.includes(id)}">${esc(TM[id].n)}</button>`;
@@ -122,26 +274,26 @@ function vPick(){
 function vQ(){const F=flow(),f=F[S.step-1];if(!f)return vRes();const {tid,q}=f,a=arr(S.ans[key(tid,q.id)]);
   return `<div class="qtopic">${tid==='common'?'Последний шаг':esc(TM[tid].n)}</div><h1>${esc(q.t)}</h1>${q.multi?'<p class="hint">Можно несколько</p>':''}
   <div class="opts">${q.o.map(o=>`<button type="button" class="opt" data-ans="${esc(o.c)}" aria-pressed="${a.includes(o.c)}">${esc(o.t)}</button>`).join('')}</div>`}
-function vRes(){const R=result(),cl=CLIENT();
-  return `<h1>${cl?'Что получилось':'Итог для клиента'}</h1><p class="hint">Предварительно, по ответам. Подробно разберём на демо.</p>
-  ${R.cards.map(c=>`<div class="card"><h2>${esc(c.t.n)}</h2>${c.t.intro?`<p>${esc(c.t.intro)}</p>`:''}
-    ${c.see.length?`<h3>Что мы видим</h3><ul>${c.see.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
-    ${c.rec.length?`<h3>Что рекомендуем</h3><ul>${c.rec.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
-    ${c.t.demo?`<h3>На демо покажем</h3><p>${esc(c.t.demo)}</p>`:''}</div>`).join('')}
-  ${R.chk.length?`<div class="card"><h2>Что подготовить к встрече</h2><ul class="chk">${R.chk.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
-  <h2 style="font-size:18px;margin-top:24px">${cl?'Куда прислать чек-лист':'Контакты'}</h2>
+function vRes(){const R=result(),cl=CLIENT(),D=demoOpts();
+  return `<h1>${cl?'Ваш разбор':'Разбор для клиента'}</h1><p class="hint">Предварительно, по ответам. Подробно разберём на демо.</p>
+  ${reportHTML(R)}
+  ${D.length?`<h2 style="font-size:18px;margin-top:24px">Какое демо интересно?</h2><p class="hint">Можно несколько</p><div class="opts">${D.map(o=>`<button type="button" class="opt" data-demo="${esc(o[0])}" aria-pressed="${arr(S.demos).includes(o[0])}"><b>${esc(o[1])}</b><br><span style="font-size:14px">${esc(o[2])}</span></button>`).join('')}</div>`:''}
+  <h2 style="font-size:18px;margin-top:24px">${cl?'Куда прислать разбор':'Контакты'}</h2>
   <div class="stack">${inp('fio',cl?'Имя':'ФИО')}${inp('company','Компания')}${cl?'':inp('pos','Должность')}${inp('email','Почта','email')}${inp('phone','Телефон или Telegram')}</div>
   ${cl?`<label class="consent"><input type="checkbox" id="consent" ${S.consent?'checked':''}><span>Согласен на обработку персональных данных по <a href="${esc(ME.policy||'https://www.1cbit.ru/privacy/')}" target="_blank" rel="noopener">политике «Первого Бита»</a></span></label>
-    <a class="btn primary" id="mgrMail" href="${esc(mgrHref())}" style="width:100%;margin-top:12px;padding:16px">Получить чек-лист и записаться на демо</a>
-    <p class="hint" style="margin-top:8px">Откроется почта с готовым письмом, нажмите «Отправить». ${esc(ME.name.split(' ')[0])} пришлёт чек-лист и предложит время демо.</p>
+    <a class="btn primary" id="mgrMail" href="${esc(mgrHref())}" style="width:100%;margin-top:12px;padding:16px">Записаться на демо и получить разбор</a>
+    <p class="hint" style="margin-top:8px">Откроется почта с готовым письмом, нажмите «Отправить». ${esc(ME.name.split(' ')[0])} пришлёт ссылку на разбор и предложит время демо.</p>
     <p class="hint">Удобнее в Telegram? <button class="link" type="button" id="tgSend">Отправить в Telegram</button></p>`
   :`<div style="margin-top:10px"><label class="f">Комментарий для себя<textarea id="i_comment" data-k="comment">${esc(S.comment)}</textarea></label></div>
     <div class="stack" style="margin-top:14px">
-      <a class="btn big" id="cliMail" href="${esc(cliHref())}"><span class="n">1</span><span>Письмо клиенту<small>Итог и чек-лист готовым текстом</small></span></a>
+      <a class="btn big" id="cliMail" href="${esc(cliHref())}"><span class="n">1</span><span>Письмо клиенту<small>Итог и ссылка на разбор готовым текстом</small></span></a>
       <a class="btn big" id="tgBtn" href="${esc(tgHref())}" target="_blank" rel="noopener"><span class="n">2</span><span>Выжимка в Telegram<small>Для себя или офиса</small></span></a>
     </div>
     <details><summary>Текст письма</summary><pre class="msg" id="emailPre">${esc(resultText())}</pre><button class="btn sm" type="button" data-copy="emailPre">Скопировать</button></details>
     <details><summary>Выжимка</summary><pre class="msg" id="sumPre">${esc(summaryText())}</pre><button class="btn sm" type="button" data-copy="sumPre">Скопировать</button></details>`}`}
+function vReport(){return `<div class="qtopic">Разбор задачи</div><h1>${esc(S.company||'Ваша компания')}</h1><p class="hint">Предварительно, по ответам на ${EVENT_P}. Подробно разберём на демо.</p>${reportHTML(result())}
+  ${demoChosen().length?`<div class="card"><h2>Договорились показать на демо</h2><ul>${demoChosen().map(o=>`<li>${esc(o[2])}</li>`).join('')}</ul></div>`:''}
+  <p class="hint" style="margin-top:16px">${esc(ME.name)}, ${esc(ME.pos)} · «Первый Бит» · ${esc(ME.phone)} · ${esc(ME.email)}</p>`}
 function vLeads(){return `<h1>Лиды</h1><p class="hint">Хранятся только на этом устройстве.</p>
   ${LEADS.length?`<div style="margin:8px 0"><button class="btn sm" type="button" id="copyAll">Скопировать все выжимки</button></div>`:''}
   ${LEADS.slice().reverse().map(x=>`<div class="lead"><div><b>${esc(x.company||x.fio||'Без названия')}</b><small>${esc((x.topics||[]).map(id=>(TM[id]||{}).n).join(', '))} · ${new Date(x.created).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></div>
@@ -154,11 +306,11 @@ function vSet(){return `<h1>Настройки</h1><p class="hint">Подпис�
 
 function render(keep){
   const y=window.scrollY,F=flow(),N=F.length+1;if(S.step>N)S.step=N;
-  $('#nav').innerHTML=CLIENT()?'':`<button id="navNew" type="button">Новый</button><button id="navLeads" type="button">Лиды${LEADS.length?' ('+LEADS.length+')':''}</button><button id="navSet" type="button" aria-label="Настройки">⚙</button>`;
-  $('#prog').firstElementChild.style.width=view==='form'?Math.round(100*S.step/N)+'%':'0';
-  $('#app').innerHTML=view==='leads'?vLeads():view==='set'?vSet():S.step===0?vPick():S.step<N?vQ():vRes();
+  $('#nav').innerHTML=CLIENT()||view==='report'?'':`<button id="navNew" type="button">Новый</button><button id="navLeads" type="button">Лиды${LEADS.length?' ('+LEADS.length+')':''}</button><button id="navSet" type="button" aria-label="Настройки">⚙</button>`;
+  $('#prog').firstElementChild.style.width=view==='form'&&view!=='report'?Math.round(100*S.step/N)+'%':'0';
+  $('#app').innerHTML=view==='report'?vReport():view==='leads'?vLeads():view==='set'?vSet():S.step===0?vPick():S.step<N?vQ():vRes();
   const back=S.step?'<button class="btn" type="button" id="prev">Назад</button>':'';
-  $('#barIn').innerHTML=view!=='form'?`<button class="btn primary" type="button" id="toForm">К форме</button>`
+  $('#barIn').innerHTML=view==='report'?`<a class="btn primary" style="width:100%" href="mailto:${esc(ME.email)}?subject=${encodeURIComponent('Демо после форума 1С:ERP'+(S.company?' — '+S.company:''))}">Записаться на демо</a>`:view!=='form'?`<button class="btn primary" type="button" id="toForm">К форме</button>`
     :S.step===0?`<button class="btn primary" type="button" id="next">${S.topics.length?'Дальше':'Выберите тему'}</button>`
     :S.step<N?`${back}<button class="btn primary" type="button" id="next">${F[S.step-1]&&arr(S.ans[key(F[S.step-1].tid,F[S.step-1].q.id)]).length?'Дальше':'Пропустить'}</button>`
     :`${back}${CLIENT()?'':'<button class="btn primary" type="button" id="newLead">Следующий клиент</button>'}`;
@@ -176,6 +328,8 @@ document.addEventListener('click',e=>{
   if(CLIENT()&&e.target.closest('#mgrMail'))setTimeout(()=>toast('Не забудьте нажать «Отправить» в почте'),600);
   const tp=e.target.closest('[data-topic]');
   if(tp){const id=tp.dataset.topic,i=S.topics.indexOf(id);i>=0?S.topics.splice(i,1):S.topics.push(id);save();render(true);return}
+  const dm=e.target.closest('[data-demo]');
+  if(dm){const v=dm.dataset.demo;S.demos=arr(S.demos);const i=S.demos.indexOf(v);i>=0?S.demos.splice(i,1):S.demos.push(v);save();saveLead();render(true);return}
   const an=e.target.closest('[data-ans]');
   if(an){const f=flow()[S.step-1];if(!f)return;const k=key(f.tid,f.q.id),c=an.dataset.ans;let a=arr(S.ans[k]).slice();
     if(f.q.multi){const i=a.indexOf(c);i>=0?a.splice(i,1):a.push(c);S.ans[k]=a;save();render(true)}
@@ -199,11 +353,13 @@ document.addEventListener('input',e=>{const t=e.target;
   if(t.dataset.me){ME[t.dataset.me]=t.value;store.set('fm_me',ME);if(t.dataset.me==='link')drawQR()}
 });
 document.addEventListener('change',e=>{if(e.target.id==='consent'){S.consent=e.target.checked;save()}});
-window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#lead=')){importLead(location.hash.slice(6));render();return}S=blank();view='form';render()});
+function openReport(h){try{S=Object.assign(blank(),JSON.parse(b64d(h)));view='report'}catch(e){toast('Ссылка повреждена')}}
+window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#r=')){openReport(location.hash.slice(3));render();return}if(location.hash.startsWith('#lead=')){importLead(location.hash.slice(6));render();return}S=blank();view='form';render()});
 const dr=store.get('kb_draft',null);
-if(!CLIENT()&&dr&&dr.id)S=Object.assign(blank(),dr);
+if(!CLIENT()&&!location.hash.startsWith('#r=')&&dr&&dr.id)S=Object.assign(blank(),dr);
 if(CLIENT())S.src='client';
 if(location.hash.startsWith('#lead='))importLead(location.hash.slice(6));
+if(location.hash.startsWith('#r='))openReport(location.hash.slice(3));
 render();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
